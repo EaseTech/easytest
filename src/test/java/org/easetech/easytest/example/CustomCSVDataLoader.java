@@ -1,4 +1,4 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
 
 import org.easytest.util.DataContext;
