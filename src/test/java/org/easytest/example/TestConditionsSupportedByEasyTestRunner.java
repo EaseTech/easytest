@@ -1,13 +1,15 @@
 
 package org.easytest.example;
 
+import org.easytest.example.editors.LibraryIdEditor;
+
 import java.beans.PropertyEditorManager;
 import java.util.Map;
 import junit.framework.Assert;
+
 import org.easytest.annotation.DataLoader;
 import org.easytest.annotation.Param;
 import org.easytest.converter.ConverterManager;
-import org.easytest.example.editors.LibraryIdEditor;
 import org.easytest.loader.LoaderType;
 import org.easytest.runner.EasyTestRunner;
 import org.junit.BeforeClass;

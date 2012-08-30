@@ -10,14 +10,14 @@
        <version>7</version>
     </parent>
     <!-- The project details. -->
-    <groupId>org.easytest</groupId>
+    <groupId>org.easetech</groupId>
     <artifactId>easytest</artifactId>
 	<packaging>jar</packaging>
 	<name>EasyTest to ease Data Driven Testing</name>
 	<description>EasyTest is a JUnit extension perform Data Driven Testing with ease and simplicity. 
     It supports method parameters with Test annotation and much more.</description>
     <url>https://github.com/anujgandharv/easytest</url>
-	<version>1.0.0</version>
+	<version>0.5.0</version>
  
     <developers>
        <developer>
