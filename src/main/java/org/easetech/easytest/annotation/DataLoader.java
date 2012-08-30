@@ -1,9 +1,9 @@
-package org.easytest.annotation;
+package org.easetech.easytest.annotation;
 
-import org.easytest.loader.EmptyLoader;
+import org.easetech.easytest.loader.EmptyLoader;
+import org.easetech.easytest.loader.Loader;
+import org.easetech.easytest.loader.LoaderType;
 
-import org.easytest.loader.LoaderType;
-import org.easytest.loader.Loader;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
