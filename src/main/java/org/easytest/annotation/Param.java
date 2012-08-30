@@ -142,7 +142,7 @@ public @interface Param {
             PropertyEditor editor = PropertyEditorManager.findEditor(idClass);
             if (editor != null) {
                 for (Map<String, Object> object : convertFrom) {
-                    if (paramName != null && !paramName.isEmpty()) {
+                    if (paramName != null && !"".equals(paramName)) {
                         if(getStringValue(paramName, object) != null){
                             editor.setAsText(getStringValue(paramName, object));
                             object.remove(paramName);

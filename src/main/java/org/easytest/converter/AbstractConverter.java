@@ -1,4 +1,3 @@
-
 package org.easytest.converter;
 
 import java.lang.reflect.ParameterizedType;
@@ -17,7 +16,7 @@ public abstract class AbstractConverter<Type> implements Converter<Type> {
      * 
      * @return the Class variable representing the Type object
      */
-    @Override
+    
     public Class<Type> convertTo() {
         @SuppressWarnings("unchecked")
         Class<Type> type = (Class<Type>) ((ParameterizedType) getClass().getGenericSuperclass())

@@ -131,7 +131,7 @@ public class CustomCSVDataLoader implements Loader{
         while (csvReader.readRecord()) {
             Map<String, Object> actualData = new HashMap<String, Object>();
             String[] splitValues =csvReader.getValues();
-            if (splitValues.length > 0 && splitValues[0].isEmpty()) {
+            if (splitValues.length > 0 && "".equals(splitValues[0])) {
                 isKeyRow = false;
             } else {
                 isKeyRow = true;

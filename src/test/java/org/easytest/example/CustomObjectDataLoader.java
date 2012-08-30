@@ -1,4 +1,3 @@
-
 package org.easytest.example;
 
 import java.util.ArrayList;
