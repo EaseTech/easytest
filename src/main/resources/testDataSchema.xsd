@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="urn:easetech:easytest:1.0" xmlns:tns="urn:easetech:easytest:1.0">
+
+
+	<xsd:element name="InputTestData">
+		<xsd:annotation>
+			<xsd:documentation>Base element to capture the Input Test Data. 
+			This is the schema that the users should follow if they want 
+			EasyTest framework to load their XML data for their test cases. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="TestMethod" type="tns:TestMethod"
+					minOccurs="1" maxOccurs="unbounded" />
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="TestMethod">
+		<xsd:annotation>
+			<xsd:documentation>Information about a single test method. This will contain the name of the test method
+			as attribute and a multiple Test Records within the test Method. Each TestRecord signifies a single execution of the given test method. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="TestRecord" type="tns:TestRecord" minOccurs="1" maxOccurs="unbounded" />			
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+	</xsd:complexType>
+	
+	<xsd:complexType name="TestRecord">
+		<xsd:annotation>
+			<xsd:documentation>Test Record captures the test data for a single execution of the enclosing TestMethod. 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Entry" type="tns:Entry" minOccurs="1" maxOccurs="unbounded" />			
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Entry">
+		<xsd:annotation>
+			<xsd:documentation>Each Entry identifies a single key/value pair where key is the name of the parameter and value is its value.  
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="key" type="tns:EntryVal" use="required" />
+		<xsd:attribute name="value" type="tns:EntryVal" use="required" />
+	</xsd:complexType>
+
+	<xsd:simpleType name="EntryVal">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1" />
+			<xsd:maxLength value="400" />
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

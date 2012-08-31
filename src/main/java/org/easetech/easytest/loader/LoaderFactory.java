@@ -21,6 +21,8 @@ public class LoaderFactory {
             loader = new CSVDataLoader();
         }else if(LoaderType.EXCEL.equals(loaderType)){
         	loader = new ExcelDataLoader();
+        }else if(LoaderType.XML.equals(loaderType)){
+        	loader = new XMLDataLoader();
         }else{
             Assert.fail("The framework currently does not support the specified Loader type. " +
                 "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData " +

@@ -207,15 +207,11 @@ public class EasyTestRunner extends BlockJUnit4ClassRunner {
                     } catch (Exception e) {
                         throw new RuntimeException("Exception occured while trying to instantiate a class of type :" + testData.loader(),e);
                     } 
-                }
-                
+                }               
             }else{
                 //user has specified data files and the data fileType is also not custom.
                 dataLoader = LoaderFactory.getLoader(loaderType);
             }
-            
-            
-            
             if(dataLoader == null){
                 Assert.fail("The framework currently does not support the specified Loader type. " +
                         "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData " +
@@ -226,28 +222,6 @@ public class EasyTestRunner extends BlockJUnit4ClassRunner {
                 
             }
         }
-        
-//        else{
-//            DataLoader customLoader = null;
-//            Loader dataLoader = null;
-//            //try to see if there is still a DataLoader annotation.
-//            if(!useTestClass){
-//                customLoader = method.getAnnotation(DataLoader.class);
-//            }else{
-//                customLoader = (DataLoader) testClass.getAnnotation(DataLoader.class);
-//            }
-//            if(customLoader!= null){
-//                Class loaderClass = customLoader.loader();
-//                try {
-//                    dataLoader = (Loader) loaderClass.newInstance();
-//                    Map<String, List<Map<String, Object>>> data = dataLoader.loadData(null);
-//                    DataContext.setData(data);
-//                } catch (Exception e) {
-//                    throw new RuntimeException("Exception occured while trying to " +
-//                            "create an instance of custom Loader Class :" + loaderClass , e);
-//                }
-//            }
-//        }
     }
 
     /**
