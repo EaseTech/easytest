@@ -1,10 +1,12 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
 import org.junit.experimental.theories.ParametersSuppliedBy;
 
 import java.util.Map;
-import org.easytest.annotation.DataLoader;
-import org.easytest.annotation.Param;
+
+import org.easetech.easytest.annotation.DataLoader;
+import org.easetech.easytest.annotation.Param;
+import org.easetech.easytest.runner.EasyTestRunner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +15,6 @@ import org.junit.experimental.theories.ParameterSignature;
 import org.junit.experimental.theories.ParameterSupplier;
 import org.junit.experimental.theories.PotentialAssignment;
 
-import org.easytest.runner.EasyTestRunner;
 
 import org.junit.runner.RunWith;
 

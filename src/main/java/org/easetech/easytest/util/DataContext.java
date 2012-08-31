@@ -1,4 +1,4 @@
-package org.easytest.util;
+package org.easetech.easytest.util;
 
 import java.util.List;
 import java.util.Map;

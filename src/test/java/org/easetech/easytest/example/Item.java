@@ -1,4 +1,4 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
 public class Item {
     
@@ -49,6 +49,12 @@ public class Item {
     public void setItemId(String itemId) {
         this.itemId = itemId;
     }
+
+	@Override
+	public String toString() {
+		return "Item [description=" + description + ", itemType=" + itemType
+				+ ", itemId=" + itemId + "]";
+	}
     
     
 

@@ -1,19 +1,24 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
+import java.util.Collections;
 import java.util.List;
 
 public class RealItemService implements ItemService {
 
     @Override
     public List<Item> getItems(LibraryId libraryId, String searchText, String itemType) {
-        // TODO Auto-generated method stub
-        return null;
+        System.out.println("getItems Called");
+        return Collections.EMPTY_LIST;
     }
 
     @Override
     public Item findItem(LibraryId libraryId, ItemId itemId) {
-        // TODO Auto-generated method stub
-        return null;
+    	System.out.println("findItems Called");
+    	Item item = new Item();
+    	item.setDescription("Item Description");
+    	item.setItemId(itemId.toString());
+    	item.setItemType("BOOK");
+        return item;
     }
 
     

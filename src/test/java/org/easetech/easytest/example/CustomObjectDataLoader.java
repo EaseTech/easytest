@@ -1,4 +1,4 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
 import java.util.ArrayList;
 
@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.easytest.loader.Loader;
+import org.easetech.easytest.loader.Loader;
 
 /**
  * 

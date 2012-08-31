@@ -1,6 +1,6 @@
-package org.easytest.loader;
+package org.easetech.easytest.loader;
 
-import org.easytest.annotation.DataLoader;
+import org.easetech.easytest.annotation.DataLoader;
 
 /**
  * 

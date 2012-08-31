@@ -1,6 +1,6 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
-import org.easytest.converter.AbstractConverter;
+import org.easetech.easytest.converter.AbstractConverter;
 
 import java.util.Map;
 

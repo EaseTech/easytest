@@ -1,17 +1,17 @@
 
-package org.easytest.example;
+package org.easetech.easytest.example;
 
-import org.easytest.example.editors.LibraryIdEditor;
+import org.easetech.easytest.annotation.DataLoader;
+import org.easetech.easytest.annotation.Param;
+import org.easetech.easytest.converter.ConverterManager;
+import org.easetech.easytest.example.editors.LibraryIdEditor;
+import org.easetech.easytest.loader.LoaderType;
+import org.easetech.easytest.runner.EasyTestRunner;
 
 import java.beans.PropertyEditorManager;
 import java.util.Map;
 import junit.framework.Assert;
 
-import org.easytest.annotation.DataLoader;
-import org.easytest.annotation.Param;
-import org.easytest.converter.ConverterManager;
-import org.easytest.loader.LoaderType;
-import org.easytest.runner.EasyTestRunner;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;

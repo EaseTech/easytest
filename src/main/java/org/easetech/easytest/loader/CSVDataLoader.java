@@ -1,7 +1,7 @@
-package org.easytest.loader;
+package org.easetech.easytest.loader;
 
-import org.easytest.util.DataContext;
-import org.easytest.util.ResourceLoader;
+import org.easetech.easytest.util.DataContext;
+import org.easetech.easytest.util.ResourceLoader;
 
 import com.csvreader.CsvReader;
 import java.io.FileNotFoundException;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An implementation of {@link Loader} for the CSV based files.
  * This Loader is responsible for reading a list of CSV based files 
- * and converting them into a data structure which is understandable by the JUnit framework.
+ * and converting them into a data structure which is understandable by the EasyTest framework.
  * It expects the format of the CSV file to be like this :<br>
  * <code>
  * <B>testGetItems,LibraryId,itemType,searchText</B>
@@ -87,7 +87,7 @@ public class CSVDataLoader implements Loader{
      * @return a Map of method name and the list of associated test data with that method name
      * @throws IOException if an IO Exception occurs
      */
-    private Map<String, List<Map<String, Object>>> LoadCSVData(final List<String> dataFiles) throws IOException {
+    private Map<String, List<Map<String, Object>>> loadCSVData(final List<String> dataFiles) throws IOException {
         Map<String, List<Map<String, Object>>> data = null;
         Map<String, List<Map<String, Object>>> finalData = new HashMap<String, List<Map<String, Object>>>();
         for (String filePath : dataFiles) {
@@ -160,7 +160,7 @@ public class CSVDataLoader implements Loader{
     public Map<String, List<Map<String, Object>>> loadData(String[] filePaths) {
         Map<String, List<Map<String, Object>>> result = new HashMap<String, List<Map<String,Object>>>();
         try {
-            result = LoadCSVData(Arrays.asList(filePaths));
+            result = loadCSVData(Arrays.asList(filePaths));
         } catch (IOException e) {
             Assert.fail("An I/O exception occured while reading the files from the path :" + filePaths.toString());
         }

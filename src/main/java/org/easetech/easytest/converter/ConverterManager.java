@@ -1,5 +1,5 @@
 
-package org.easytest.converter;
+package org.easetech.easytest.converter;
 
 
 import java.util.HashSet;
@@ -11,6 +11,7 @@ import java.util.Set;
  * locate a {@link Converter} for any given type name.
  * 
  */
+@SuppressWarnings("rawtypes")
 public class ConverterManager {
 
     /**
@@ -23,17 +24,22 @@ public class ConverterManager {
      * @param targetType the class type to find teh converter for.
      * @return an instance of registered converter or Null if not found.
      */
-    public static Converter findConverter(Class targetType) {
-        Set<Converter> cnvrtrs = converters.get();
-        Iterator<Converter> itr = cnvrtrs.iterator();
-        Converter result = null;
-        while (itr.hasNext()) {
-            Converter converter = itr.next();
-            if (converter.convertTo().equals(targetType)) {
-                result = converter;
-                break;
-            }
-        }
+    public static Converter<?> findConverter(Class<?> targetType) {
+
+		Set<Converter> cnvrtrs = converters.get();
+		Converter result = null;
+		if(cnvrtrs!=null){
+			Iterator<Converter> itr = cnvrtrs.iterator();
+	        
+	        while (itr.hasNext()) {
+	            Converter converter = itr.next();
+	            if (converter.convertTo().equals(targetType)) {
+	                result = converter;
+	                break;
+	            }
+	        }
+		}
+        
         return result;
     }
 

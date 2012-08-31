@@ -1,4 +1,4 @@
-package org.easytest.runner;
+package org.easetech.easytest.runner;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -6,12 +6,17 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.easytest.annotation.DataLoader;
-import org.easytest.annotation.Param;
-import org.easytest.loader.Loader;
-import org.easytest.loader.LoaderFactory;
-import org.easytest.loader.LoaderType;
-import org.easytest.util.DataContext;
+
+import net.sf.cglib.proxy.Enhancer;
+
+import org.easetech.easytest.annotation.DataLoader;
+import org.easetech.easytest.annotation.Param;
+import org.easetech.easytest.annotation.TestSubject;
+import org.easetech.easytest.interceptor.TestDataInterceptor;
+import org.easetech.easytest.loader.Loader;
+import org.easetech.easytest.loader.LoaderFactory;
+import org.easetech.easytest.loader.LoaderType;
+import org.easetech.easytest.util.DataContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoint;
@@ -78,6 +83,7 @@ public class EasyTestRunner extends BlockJUnit4ClassRunner {
     public EasyTestRunner(Class<?> klass) throws InitializationError {
         super(klass);
         loadData(klass, null);
+        enhanceTestSubject(klass);
         
     }
     
@@ -123,8 +129,41 @@ public class EasyTestRunner extends BlockJUnit4ClassRunner {
         return new ParamAnchor(method, getTestClass());
     }
     
-    @SuppressWarnings("unchecked")
-    protected static void loadData(Class testClass , FrameworkMethod method){
+    /**
+     * This method is responsible for creating a CGLIB proxy of the class that is under test currently. 
+     * This is not the Test class, rather the class inside the test class which needs to be tested.
+     * @param klass the test Class
+     */
+    protected void enhanceTestSubject(Class<?> klass){
+    	Field[] classFields = klass.getFields();
+    	for(Field field : classFields){
+    		TestSubject testSubjectAnnotation = field.getAnnotation(TestSubject.class);
+    		if(testSubjectAnnotation != null){
+    			//this is the field we want to enhance.
+    			Class<?> fieldClassToEnhance = field.getType();
+    			Object proxy = Enhancer.create(fieldClassToEnhance, new TestDataInterceptor());
+    			try {
+					field.set(null, proxy);
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
+    		}
+    	}
+    }
+    
+    /**
+     * Load the Data for the given class or method.
+     * This method will try to find {@link DataLoader} on either the class level or the method level.
+     * In case the annotation is found, this method will load the data using the specified loader class 
+     * and then save it in the DataContext for further use by the system.
+     * @param testClass the class object, if any.
+     * @param method current executing method, if any.
+     */
+    protected static void loadData(Class<?> testClass , FrameworkMethod method){
         if(testClass == null && method == null){
             Assert.fail("The framework should provide either the testClass parameter or the method parameter in order to load the test data.");
         }

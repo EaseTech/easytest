@@ -1,12 +1,12 @@
-package org.easytest.annotation;
+package org.easetech.easytest.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
-import org.easytest.util.DataContext;
+import org.easetech.easytest.converter.Converter;
+import org.easetech.easytest.converter.ConverterManager;
+import org.easetech.easytest.util.DataContext;
 
-import org.easytest.converter.Converter;
-import org.easytest.converter.ConverterManager;
 
 
 
@@ -137,7 +137,7 @@ public @interface Param {
          * @param convertFrom the list of raw data read from the CSV file.
          * @return list of {@link PotentialAssignment}
          */
-        private List<PotentialAssignment> convert(Class idClass, String paramName, List<Map<String, Object>> convertFrom) {
+        private List<PotentialAssignment> convert(Class<?> idClass, String paramName, List<Map<String, Object>> convertFrom) {
             List<PotentialAssignment> finalData = new ArrayList<PotentialAssignment>();
             PropertyEditor editor = PropertyEditorManager.findEditor(idClass);
             if (editor != null) {

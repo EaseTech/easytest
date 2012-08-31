@@ -1,4 +1,4 @@
-package org.easytest.loader;
+package org.easetech.easytest.loader;
 
 import junit.framework.Assert;
 
@@ -15,10 +15,12 @@ public class LoaderFactory {
      * @param fileType the type of file
      * @return an instance of {@link Loader} or null if no loader is found.
      */
-    public static Loader getLoader(LoaderType fileType){
+    public static Loader getLoader(LoaderType loaderType){
         Loader loader = null;
-        if(LoaderType.CSV.equals(fileType)){
+        if(LoaderType.CSV.equals(loaderType)){
             loader = new CSVDataLoader();
+        }else if(LoaderType.EXCEL.equals(loaderType)){
+        	loader = new ExcelDataLoader();
         }else{
             Assert.fail("The framework currently does not support the specified Loader type. " +
                 "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData " +

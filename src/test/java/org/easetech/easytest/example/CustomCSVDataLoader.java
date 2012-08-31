@@ -1,10 +1,10 @@
-package org.easytest.example;
+package org.easetech.easytest.example;
 
 
-import org.easytest.util.DataContext;
-import org.easytest.util.ResourceLoader;
+import org.easetech.easytest.loader.Loader;
+import org.easetech.easytest.util.DataContext;
+import org.easetech.easytest.util.ResourceLoader;
 
-import org.easytest.loader.Loader;
 
 
 
