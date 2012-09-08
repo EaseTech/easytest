@@ -80,8 +80,6 @@ public class CustomCSVDataLoader implements Loader{
             data = loadFromSpreadsheet(stream);
             finalData.putAll(data);
         }
-        
-        DataContext.setData(finalData);
 
     }
 

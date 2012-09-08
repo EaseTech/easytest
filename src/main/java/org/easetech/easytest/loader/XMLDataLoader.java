@@ -8,21 +8,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-
+import org.easetech.easytest._1.Entry;
+import org.easetech.easytest._1.InputTestData;
+import org.easetech.easytest._1.ObjectFactory;
+import org.easetech.easytest._1.TestMethod;
+import org.easetech.easytest._1.TestRecord;
 import org.easetech.easytest.util.ResourceLoader;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import easetech.easytest._1.Entry;
-import easetech.easytest._1.InputTestData;
-import easetech.easytest._1.ObjectFactory;
-import easetech.easytest._1.TestMethod;
-import easetech.easytest._1.TestRecord;
 
 /**
  * An implementation of {@link Loader} for the XML based files.

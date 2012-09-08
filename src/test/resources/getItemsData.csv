@@ -4,13 +4,9 @@ testGetItems,LibraryId,itemType,searchText
 testGetItemsWithoutFileType,LibraryId,itemType,searchText
 ,10,book,catwoman
 ,2,journal,spiderman
-testGetItemsWithoutFileTypeWithStrongParameters,LibraryId,itemid
-, 4,9
 testGetItemsWithCustomLoader,LibraryId,itemType,searchText
 ,10,cd,a beautiful mind
 ,20,dvd,rambo
 testConverter,itemDescription,itemId,itemType
 ,item Description 1, 1212, ebook
 ,item Description 2, 3434, journal
-testGetItemEnh,LibraryId,itemType,searchText
-,4,book,bman

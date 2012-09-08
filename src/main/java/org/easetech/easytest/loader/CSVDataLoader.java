@@ -75,8 +75,6 @@ public class CSVDataLoader implements Loader{
             data = loadFromSpreadsheet(stream);
             finalData.putAll(data);
         }
-        
-        DataContext.setData(finalData);
 
     }
 

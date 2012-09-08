@@ -99,7 +99,7 @@ public @interface Param {
                 		"In case you are using ParametersSuppliedBy annotation, make sure you are using the right ParameterSupplier subclass.");
             }
             List<PotentialAssignment> listOfData = null;
-            Map<String, List<Map<String, Object>>> data = DataContext.getData();
+            Map<String, List<Map<String, Object>>> data = DataContext.getConvertedData();
             List<Map<String, Object>> methodData = data.get(value);
             if(methodData == null){
                 Assert.fail("Data does not exist for the specified method with name :" + value + " .Please check " +
@@ -145,12 +145,12 @@ public @interface Param {
                     if (paramName != null && !"".equals(paramName)) {
                         if(getStringValue(paramName, object) != null){
                             editor.setAsText(getStringValue(paramName, object));
-                            object.remove(paramName);
+                            //object.remove(paramName);
                         }
                         
                     } else {
                         editor.setAsText(getStringValue(idClass.getSimpleName(), object));
-                        object.remove(idClass.getSimpleName());
+                        //object.remove(idClass.getSimpleName());
                     }
                     if (editor.getValue() != null) {
                         finalData.add(PotentialAssignment.forValue("", editor.getValue()));

@@ -1,6 +1,8 @@
 package org.easetech.easytest.example;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 public class RealItemService implements ItemService {
@@ -19,6 +21,18 @@ public class RealItemService implements ItemService {
     	item.setItemId(itemId.toString());
     	item.setItemType("BOOK");
         return item;
+    }
+    
+    public static void main(String[] args){
+    	ArrayList<String> stringList = new ArrayList<String>();
+    	stringList.add(null);
+    	Iterator<String> strItr = stringList.iterator();
+    	while(strItr.hasNext()){
+    		System.out.println(strItr.next());
+    	}
+    	for(String str : stringList){
+    		System.out.println(str);
+    	}
     }
 
     

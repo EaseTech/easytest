@@ -33,11 +33,33 @@ What this code base consists of:
 
 This code base consists of :
 
-1) A customized JUnit Runner(extending BlockJUnit4Runner) that provides the test data in a consistent and user controlled manner. It is called EasyTestRunner. 
+1) A customized JUnit Runner that gives its user ability to provide test data in a consistent and user controlled manner. It is called DataDrivenTest. 
 This Runner works on our favorite annotation @Test from JUnit and also supports passing parameters to the test method. And this is not its only selling point.
 
-2) A Data Loading Strategy consisting of interface Loader and classes LoaderFactory and CSVDataLoader and an Enum loaderType. 
-CSVDataLoader is an implementation of Loader interface and provides a mechanism to load test data from a CSV file.
+2) DataDrivenTest runner gives its users the ability to inspect the testMethod and its associated test data in the IDE. 
+For example, when a user runs the test method with name : getTestData with the following test data:
+
+<B> "libraryId=1 and itemId=2"</B>
+ 
+ <B> "libraryId=2456 and itemId=789"</B>
+ 
+ then, DataDrivenTest, will provide the details of the executing test method in the JUnit supported IDEs like this: 
+ 
+ <B>getTestData{libraryId=1 ,itemId=2}
+ 
+ <B>getTestData{libraryId=2456 ,itemId=789}</B>
+ 
+ NOTE: In case the user has simple test methods(without parameters), DataDrivenTest runner supports that implicitly.
+ 
+3) A Data Loading Strategy consisting of interface Loader and classes LoaderFactory and CSVDataLoader and an Enum LoaderType. 
+EasyTest supports four different ways for the user to load Data:
+  + CSV
+  + XECEL
+  + XML
+  + CUSTOM
+  
+  CSV, EXCE,XML data loader implementation is already available and the users can use it out of the box.
+  To give an example of the design, CSVDataLoader is an implementation of Loader interface and provides a mechanism to load test data from a CSV file.
 LoaderFactory is a Factory class that is responsible for returning the right type of Loader based on the loaderType.
 
 3) Param annotation that is an extension of ParametersSuppliedBy annotation and provides a lot of useful features to its user. Some of them include:
@@ -55,9 +77,10 @@ LoaderFactory is a Factory class that is responsible for returning the right typ
    + The type of loader to load the files, identified by loaderType.</li>
    + The custom loader that is used by users to provide custom data loaders. It is an OPTIONAL field. 
  
+ DataLoader annotation can be used both at the class level as well as at the method level.
+ In case the annotation is applied at both places, then method level takes precedence over Class level.
     
-   Currently the framework only support CSV loader Type and in case the Framework does not support the specified loader Type the test execution will fail.
-   The annotation can be applied both at the Class level as well as at the method level. In case the annotation is applied at both places, then method level takes precedence over Class level.
+   Currently the framework supports CSV , XML, Excel and Custom loader Type.
    
 5)DataContext class that contains thread-local variables that stores test data as well as the name of the currently executing test method.
 
@@ -68,7 +91,7 @@ Some Examples of using EasyTest
 ---------------------------------------------------
 <B>CASE 1</B>: Provides input test data in the form of CSV file at the class level, that is used by the test methods.
 
-    @RunWith(EasyTestRunner.class)
+    @RunWith(DataDrivenTest.class)
     @DataLoader(filePaths = { "getItemsData.csv" }, loaderType = LoaderType.CSV)
     public class TestConditionsSupportedByEasyTestRunner {
 
@@ -85,9 +108,9 @@ Some Examples of using EasyTest
 
     }
     
-<B>CASE 2</B>: User provides input test data in the form of CSV file at the method level only.
+<B>CASE 2</B>: User provides input test data in the form of EXCEL file at the method level only.
 
-    @RunWith(EasyTestRunner.class)
+    @RunWith(DataDrivenTest.class)
     public class TestConditionsSupportedByEasyTestRunner {
 
 
@@ -96,7 +119,7 @@ Some Examples of using EasyTest
      * @param inputData a generic map of input test data that contains all the required parameters for the test data.
      */
     @Test
-    @DataLoader(filePaths = { "getItemsData.csv" }, loaderType = LoaderType.CSV)
+    @DataLoader(filePaths = { "getItemsData.xls" }, loaderType = LoaderType.EXCEL)
     public void testGetItems(@Param()
     Map<String, String> inputData) {
         System.out.println("library Id : " + inputData.get("LibraryId") + " and item type : "
@@ -104,10 +127,10 @@ Some Examples of using EasyTest
 
     }
     
-<B>CASE 3</B>: User provides input test data in the form of CSV file at the Class level as well as method level. In this case method level test data takes priority over class level test data.
+<B>CASE 3</B>: User provides input test data in the form of XML file at the Class level and as CSV file at method level. In this case method level test data takes priority over class level test data.
 
-    @RunWith(EasyTestRunner.class)
-    @DataLoader(filePaths = { "getItemsData.csv" }, loaderType = LoaderType.CSV)
+    @RunWith(DataDrivenTest.class)
+    @DataLoader(filePaths = { "getItemsData.xml" }, loaderType = LoaderType.XML)
     public class TestConditionsSupportedByEasyTestRunner {
 
 
@@ -124,30 +147,11 @@ Some Examples of using EasyTest
 
     }
 
-<B>CASE 4</B>: User can also provide its custom Data Loader both at the Class level as well as at the method level. The below example shows using Custom Loader at the method level :
 
-    @RunWith(EasyTestRunner.class)
-    @DataLoader(filePaths = { "getItemsData.csv" }, fileType = FileType.CSV)
-    public class TestConditionsSupportedByEasyTestRunner {
-
-
-    /**
-     * A Simple test that uses data provided by TestData annotation present at the Method level
-     * @param inputData a generic map of input test data that contains all the required parameters for the test data.
-     */
-    @Test
-    @DataLoader(loader = MyDataLoader.class, loaderType = LoaderType.CUSTOM)
-    @CustomLoader(loader = MyDataLoader.class)
-    public void testGetItems(@Param()
-    Map<String, String> inputData) {
-        System.out.println("library Id : " + inputData.get("LibraryId") + " and item type : "
-            + inputData.get("itemType") + " and search text array :" + inputData.get("searchText"));
-
-    }
     
 <B>CASE 5</B>: User can also use their custom defined Objects as parameters in the test case. In this case LibraryId and ItenmId will be resolved using RegsitryEditorSupport of java:
 
-    @RunWith(EasyTestRunner.class)
+    @RunWith(DataDrivenTest.class)
     @DataLoader(filePaths = { "getItemsData.csv" }, loaderType = LoaderType.CSV)
     public class TestConditionsSupportedByEasyTestRunner {
 

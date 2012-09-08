@@ -12,12 +12,12 @@
     <!-- The project details. -->
     <groupId>org.easetech</groupId>
     <artifactId>easytest</artifactId>
-	<packaging>jar</packaging>
-	<name>EasyTest to ease Data Driven Testing</name>
-	<description>EasyTest is a JUnit extension perform Data Driven Testing with ease and simplicity. 
+ <packaging>jar</packaging>
+ <name>EasyTest to ease Data Driven Testing</name>
+ <description>EasyTest is a JUnit extension perform Data Driven Testing with ease and simplicity. 
     It supports method parameters with Test annotation and much more.</description>
     <url>https://github.com/EaseTech/easytest</url>
-	<version>0.5.0</version>
+ <version>0.5.0</version>
  
     <developers>
        <developer>
@@ -136,12 +136,12 @@
         </dependency>
         
         <dependency>
-	    	<groupId>cglib</groupId>
-	    	<artifactId>cglib</artifactId>
-	    	<version>2.2.2</version>
-		</dependency>
-	
-		<dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+ 
+        <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
             <version>3.8</version>
