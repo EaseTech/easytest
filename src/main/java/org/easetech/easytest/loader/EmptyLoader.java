@@ -21,5 +21,11 @@ public class EmptyLoader implements Loader {
     public Map<String, List<Map<String, Object>>> loadData(String[] filePaths) {
         return new HashMap<String, List<Map<String,Object>>>();
     }
-
+    
+    @Override
+	public void writeData(String filePath,
+			Map<String, List<Map<String, Object>>> actualData) {
+		// TODO Auto-generated method stub
+		
+	}
 }

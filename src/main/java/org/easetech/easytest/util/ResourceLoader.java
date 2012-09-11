@@ -11,7 +11,11 @@ import java.io.InputStream;
  * 
  */
 public class ResourceLoader {
-
+    
+    /**
+     * An instance of logger associated with the test framework.
+     */
+    protected static final Logger LOG = LoggerFactory.getLogger(ResourceLoader.class);
     /**
      * The path to the file that needs to be loaded
      */
@@ -46,7 +50,7 @@ public class ResourceLoader {
         this.classLoader = null;
     }
 
-    /**
+   /**
      * Return an instance of Input stream for the provided {@link #filePath}
      * 
      * @return an instance of Input stream for the provided {@link #filePath}
@@ -58,11 +62,36 @@ public class ResourceLoader {
         if (this.classLoader == null) {
             classLoader = Thread.currentThread().getContextClassLoader();
         }
-        is = classLoader.getResourceAsStream(this.filePath);
-        if (is == null) {
+        String path = classLoader.getResource(this.filePath).getPath();
+        LOG.debug("getInputStream() File absolute path:"+path); 
+        
+        if (path == null) {
             throw new FileNotFoundException(filePath + " cannot be opened because it does not exist");
         }
+        is = new FileInputStream(path);
         return is;
     }
+    
+    /**
+     * Return an instance of FileOutputStream for the provided {@link #filePath}
+     * 
+     * @return an instance of FileWriter for the provided {@link #filePath}
+     * @throws IOException if an I/O exception occurs
+     */
+    public FileOutputStream getFileOutputStream() throws IOException {
+        FileOutputStream fos = null;
+        ClassLoader classLoader = this.classLoader;
+        if (this.classLoader == null) {
+            classLoader = Thread.currentThread().getContextClassLoader();
+        }
+        String path = classLoader.getResource(this.filePath).getPath();
+        LOG.debug("getFileOutputStream File absolute path:"+path);        
+        if (path == null) {
+            throw new FileNotFoundException(filePath + " cannot be opened because it does not exist");
+        }
+        
+        fos = new FileOutputStream(path);
+        return fos;
+    } 
 
 }

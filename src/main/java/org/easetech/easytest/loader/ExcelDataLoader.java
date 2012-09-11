@@ -238,6 +238,7 @@ public class ExcelDataLoader implements Loader{
      * @throws IOException if an IO Exception occurs
      */
     private Map<String, List<Map<String, Object>>> loadExcelData(final List<String> dataFiles) throws IOException {
+        LOG.debug("loadExcelData started", dataFiles);
         Map<String, List<Map<String, Object>>> data = null;
         Map<String, List<Map<String, Object>>> finalData = new HashMap<String, List<Map<String, Object>>>();
         for (String filePath : dataFiles) {
@@ -255,6 +256,7 @@ public class ExcelDataLoader implements Loader{
             }
             finalData.putAll(data);
         }
+        LOG.debug("loadExcelData finisihed", finalData);
         return finalData;
 
     }
@@ -264,13 +266,140 @@ public class ExcelDataLoader implements Loader{
      */
 	@Override
 	public Map<String, List<Map<String, Object>>> loadData(String[] filePaths) {
-		
+		LOG.info("loadData started"+filePaths);
 		Map<String, List<Map<String, Object>>> result = new HashMap<String, List<Map<String,Object>>>();
-        try {
-            result = loadExcelData(Arrays.asList(filePaths));
-        } catch (IOException e) {
-            Assert.fail("An I/O exception occured while reading the files from the path :" + filePaths.toString());
-        }
-        return result;
+	        try {
+	            result = loadExcelData(Arrays.asList(filePaths));
+	        } catch (IOException e) {
+	            Assert.fail("An I/O exception occured while reading the files from the path :" + filePaths.toString());
+	        }
+	        LOG.debug("loadData finished"+result);
+        	LOG.info("loadData finished");
+	        return result;
+	}
+	
+		@Override
+	public void writeData(String filePath,
+			Map<String, List<Map<String, Object>>> map) {
+	 	LOG.info("writeData started");
+		LOG.debug("writeData started, filePath:"+filePath+", data map size:"+map.size()+", data map:"+map);
+	 	try {
+	 	
+	 		writeExcelData(filePath,map);
+	        } catch (IOException e) {
+	            Assert.fail("An I/O exception occured while reading the files from the path :" + filePath.toString());
+	        }
+        	LOG.info("writeData finished");
+	}
+	
+    /**
+     * writes map data to excel file. it gets FileWriter from ResourceLoader and writeDataToSpreadsheet
+     * 
+     * @param filePath the list of input stream string files to load the data from
+     * @param a Map of method name and the list of associated test input and output data with that method name
+     * @throws IOException if an IO Exception occurs
+     */
+	private void writeExcelData(String filePath,Map<String, List<Map<String, Object>>> data) throws IOException {
+			System.out.println("writeExcelData started"+filePath+data.size());
+	       
+	    LOG.debug("writeExcelData started"+filePath+data.size());   
+            try {                             
+                ResourceLoader resource = new ResourceLoader(filePath);               
+                writeDataToSpreadsheet(resource, data);
+            } catch (FileNotFoundException e) {
+                LOG.error("The specified file was not found. The path is : {}", filePath);
+                LOG.error("Continuing with the loading of next file.");
+            } catch (IOException e) {
+                LOG.error("IO Exception occured while trying to read the data from the file : {}", filePath);
+                LOG.error("Continuing with the loading of next file.");
+            }
+            
+            LOG.debug("writeExcelData finished"+filePath+data.size());
+	}
+
+	private void writeDataToSpreadsheet(ResourceLoader resource,
+			Map<String, List<Map<String, Object>>> data) throws IOException {
+		LOG.debug("writeDataToSpreadsheet started"+resource.toString()+data);
+		Workbook workbook;
+		try {
+			
+			workbook = WorkbookFactory.create(new POIFSFileSystem(resource.getInputStream()));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IOException(e.getMessage());
+		}
+        
+        Sheet sheet = workbook.getSheetAt(0);       
+        
+
+        for(String methodName:data.keySet()){
+        	LOG.debug("methodName from data.keySet:"+methodName);
+        	int rowNum = 0;
+        	
+        	boolean isActualResultHeaderWritten = false;
+        	for(Map<String, Object> methodData:data.get(methodName)){
+        		//rowNum increment by one to proceed with next record of the method.
+        		rowNum++;        		
+        		
+        		Object outputValue = methodData.get("ActualResult");
+        		if(outputValue != null){
+        			System.out.println("ActualResult exist in method data");
+        			//getting no.of columns in the record
+            		int columnNum = methodData.size();
+        			if(!isActualResultHeaderWritten){
+	        			int recordNum = getMethodRowNumFromExcel(sheet,methodName);
+	        			writeDataToCell(sheet,recordNum,columnNum,"ActualResult");
+	                	rowNum = rowNum +recordNum;
+	                	isActualResultHeaderWritten = true;
+        			}
+                	LOG.debug("rowNum:"+rowNum);
+                	
+                	//column no is incremented by 2 because first column is null as per test data method structure
+                	// and we need to write data next to last non-empty column
+        			writeDataToCell(sheet,rowNum,columnNum,outputValue.toString());
+        		}
+        	}
+        	//rowNum = rowNum+countMethodRecords;
+        }        
+        // Write the output to a file        
+        workbook.write(resource.getFileOutputStream());
+        //fileOutputStream.close();
+        LOG.debug("writeDataToSpreadsheet finished");
+                        
+        //workbook.write(inputStream);
+        //return finalData;
+		
+	}
+
+	private int getMethodRowNumFromExcel(Sheet sheet, String methodName) {
+		LOG.debug("getMethodRowNumFromExcel started:"+methodName);
+		int rowNum = 0; 
+		for (Row row : sheet) {
+			//getting first cell value as method name is available in first column
+             Cell cell = row.getCell(0);
+             if(cell != null) {
+	             String cellData = cell.getStringCellValue();
+	             System.out.println("cellData :"+cellData);
+	             if(cellData != null && methodName.equals(cellData.trim())){	            	 
+	            	 rowNum = cell.getRow().getRowNum();
+	            	 LOG.debug("methodName matched at rowNum:"+rowNum);
+	            	 break;
+	             } 
+	         }  
+		}
+		LOG.debug("getMethodRowNumFromExcel finished:"+methodName+rowNum);
+		return rowNum;
+	}
+
+	private void writeDataToCell(Sheet sheet, int rowNum, int columnNum,String value) {
+		LOG.debug("writeDataToCell started: rowNum:"+rowNum+" ,columnNum:"+columnNum);
+		Row row = sheet.getRow(rowNum);
+	    Cell cell = row.getCell(columnNum);
+	    if (cell == null)
+	        cell = row.createCell(columnNum);
+	    cell.setCellType(Cell.CELL_TYPE_STRING);
+	    cell.setCellValue(value);
+	    LOG.debug("writeDataToCell finished");
 	}
 }
