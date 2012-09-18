@@ -1,6 +1,18 @@
 
 package org.easetech.easytest.runner;
 
+import org.easetech.easytest.util.RunAftersWithOutputData;
+
+import org.junit.AfterClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.internal.runners.statements.RunAfters;
+import org.junit.rules.RunRules;
+import org.junit.rules.TestRule;
+
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.MultipleFailureException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -64,10 +76,9 @@ public class DataDrivenTest extends Suite {
     // creating following variables for capturing test output
     private String[] dataFiles;
     private Loader dataLoader = null;
-    private static Map<String, List<Map<String, Object>>> actualData;
+    private static Map<String, List<Map<String, Object>>> writableData = new HashMap<String, List<Map<String, Object>>>();
     private static int rowNum = 0;
     private String mapMethodName = "";
-    private boolean actualDataLoadedOnce = false;
 
     /**
      * An instance of logger associated with the test framework.
@@ -165,6 +176,10 @@ public class DataDrivenTest extends Suite {
         protected String testName(final FrameworkMethod method) {
             return String.format("%s", method.getName());
         }
+        
+
+        
+        
 
         /**
          * Overridden the compute test method to make it save the method list as class instance, so that the method does
@@ -474,17 +489,18 @@ public class DataDrivenTest extends Suite {
                                 // List<Map<String,Object>> methodData = data.get(mapMethodName);
                                 // Map<String,Object> returnObjMap = new HashMap<String,Object>();
                                 // returnObjMap.put("ActualResult",returnObj);
-                                // actualData = DataContext.getData();
-                                if (actualData.get(mapMethodName) != null) {
-                                    LOG.debug("actualData.get(mapMethodName)" + actualData.get(mapMethodName)
+                                // writableData = DataContext.getData();
+                                if (writableData.get(mapMethodName) != null) {
+                                    LOG.debug("writableData.get(mapMethodName)" + writableData.get(mapMethodName)
                                         + " ,rowNum:" + rowNum);
                                     // List<Map<String,Object>> methoData = DataContext.getData().get(method.getName());
                                     // if(DataContext.getData().get(method.getName())!=null){
-                                    actualData.get(mapMethodName).get(rowNum++).put("ActualResult", returnObj);
+                                    writableData.get(mapMethodName).get(rowNum++).put("ActualResult", returnObj);
+//                                    LOG.debug("writeMap:" + writableData.toString());
+//                                    dataLoader.writeData(dataFiles[0], writableData);
                                     // }
                                 }
-                                LOG.debug("writeMap:" + actualData.toString());
-                                dataLoader.writeData(dataFiles[0], actualData);
+                                
                             }
                         } catch (CouldNotGenerateValueException e) {
                             // ignore
@@ -693,6 +709,23 @@ public class DataDrivenTest extends Suite {
         }
         superMethodName = null;
     }
+    
+    /**
+     * Returns a {@link Statement}: run all non-overridden {@code @AfterClass} methods on this class
+     * and superclasses before executing {@code statement}; all AfterClass methods are
+     * always executed: exceptions thrown by previous steps are combined, if
+     * necessary, with exceptions from AfterClass methods into a
+     * {@link MultipleFailureException}.
+     * 
+     * This method is also responsible for writing the data to the output file in case the user is returning test data from the test method.
+     * This method will make sure that the data is written to the output file once after the Runner has completed and not for every instance of the test method.
+     */
+    @Override
+    protected Statement withAfterClasses(Statement statement) {
+        List<FrameworkMethod> afters= getTestClass()
+                .getAnnotatedMethods(AfterClass.class);
+        return new RunAftersWithOutputData(statement, afters, null , dataLoader , dataFiles, writableData);
+    }
 
     /**
      * Check if the data for the given method is loaded or not.
@@ -723,7 +756,7 @@ public class DataDrivenTest extends Suite {
      * Load the Data for the given class or method. This method will try to find {@link DataLoader} on either the class
      * level or the method level. In case the annotation is found, this method will load the data using the specified
      * loader class and then save it in the DataContext for further use by the system.
-     * We also create another copy of the input test data that we store in the {@link DataDrivenTest#actualData} field.
+     * We also create another copy of the input test data that we store in the {@link DataDrivenTest#writableData} field.
      * This is done in order to facilitate the writing of the data that might be returned by the test method.
      * 
      * @param testClass the class object, if any.
@@ -794,10 +827,7 @@ public class DataDrivenTest extends Suite {
             } else {
                 Map<String, List<Map<String, Object>>> data = dataLoader.loadData(dataFiles);
                 //We also maintain the copy of the actual data for our write functionality.
-                if (!actualDataLoadedOnce) {                   
-                    actualData = new HashMap<String, List<Map<String, Object>>>(data);
-                    actualDataLoadedOnce = true;
-                }
+                writableData.putAll(data);
                 DataContext.setData(DataConverter.appendClassName(data, currentTestClass));
                 DataContext.setConvertedData(DataConverter.convert(data, currentTestClass));
 

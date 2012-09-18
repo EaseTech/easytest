@@ -32,26 +32,34 @@ import org.slf4j.LoggerFactory;
     xsi:schemaLocation="urn:oclc:merlins:test:Group:1.0 group-reg.xsd"&gt;<br>
  * <B>&lt;TestMethod name="getSimpleData"&gt;</B><br>
  * &nbsp;&nbsp;&lt;TestRecord&gt;<br>
+ * &nbsp;&nbsp;&lt;InputData&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="libraryId" value="91475" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="itemId" value="12" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="itemType" value="book" /&gt;<br>
+ * &nbsp;&nbsp;&lt;/InputData&gt;<br>
  * &nbsp;&nbsp;&lt;/TestRecord&gt;<br>
  * &nbsp;&nbsp;&lt;TestRecord&gt;<br>
+ * &nbsp;&nbsp;&lt;InputData&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="libraryId" value="234" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="itemId" value="1452" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="itemType" value="journal" /&gt;<br>
+ * &nbsp;&nbsp;&lt;/InputData&gt;<br>
  * &nbsp;&nbsp;&lt;/TestRecord&gt;<br>
  * <B>&lt;/TestMethod&gt;</B><br>
  * <B>&lt;TestMethod name="getAnotherData"&gt;</B><br>
  * &nbsp;&nbsp;&lt;TestRecord&gt;<br>
+ * &nbsp;&nbsp;&lt;InputData&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="picId" value="1111" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="picNum" value="12" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="picFormat" value="jpeg" /&gt;<br>
+ * &nbsp;&nbsp;&lt;/InputData&gt;<br>
  * &nbsp;&nbsp;&lt;/TestRecord&gt;<br>
  * &nbsp;&nbsp;&lt;TestRecord&gt;<br>
+ * &nbsp;&nbsp;&lt;InputData&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="picId" value="1561" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="picNum" value="178" /&gt;<br>
  * &nbsp;&nbsp;&nbsp;&lt;Entry key="picFormat" value="raw" /&gt;<br>
+ * &nbsp;&nbsp;&lt;/InputData&gt;<br>
  * &nbsp;&nbsp;&lt;/TestRecord&gt;<br>
  * <B>&lt;/TestMethod&gt;</B><br>
  * <B>&lt;/easytest:InputTestData&gt;</B><br><br>
