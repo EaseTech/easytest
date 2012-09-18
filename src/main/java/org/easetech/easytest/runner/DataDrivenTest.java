@@ -64,10 +64,9 @@ public class DataDrivenTest extends Suite {
     // creating following variables for capturing test output
     private String[] dataFiles;
     private Loader dataLoader = null;
-    private static Map<String, List<Map<String, Object>>> actualData;
+    private static Map<String, List<Map<String, Object>>> actualData = new HashMap<String, List<Map<String, Object>>>();
     private static int rowNum = 0;
     private String mapMethodName = "";
-    private boolean actualDataLoadedOnce = false;
 
     /**
      * An instance of logger associated with the test framework.
@@ -481,10 +480,11 @@ public class DataDrivenTest extends Suite {
                                     // List<Map<String,Object>> methoData = DataContext.getData().get(method.getName());
                                     // if(DataContext.getData().get(method.getName())!=null){
                                     actualData.get(mapMethodName).get(rowNum++).put("ActualResult", returnObj);
+                                    LOG.debug("writeMap:" + actualData.toString());
+                                    dataLoader.writeData(dataFiles[0], actualData);
                                     // }
                                 }
-                                LOG.debug("writeMap:" + actualData.toString());
-                                dataLoader.writeData(dataFiles[0], actualData);
+                                
                             }
                         } catch (CouldNotGenerateValueException e) {
                             // ignore
@@ -794,10 +794,7 @@ public class DataDrivenTest extends Suite {
             } else {
                 Map<String, List<Map<String, Object>>> data = dataLoader.loadData(dataFiles);
                 //We also maintain the copy of the actual data for our write functionality.
-                if (!actualDataLoadedOnce) {                   
-                    actualData = new HashMap<String, List<Map<String, Object>>>(data);
-                    actualDataLoadedOnce = true;
-                }
+                actualData.putAll(data);
                 DataContext.setData(DataConverter.appendClassName(data, currentTestClass));
                 DataContext.setConvertedData(DataConverter.convert(data, currentTestClass));
 

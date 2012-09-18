@@ -57,7 +57,7 @@ public class TestExcelDataLoader {
     public Item getExcelTestDataWithReturnType(@Param(name = "libraryId")
     Float libraryId, @Param(name = "itemId")
     Float itemId) {
-        LOG.debug("Executing  getExcelTestDataWithReturnType : ");
+        System.out.print("Executing  getExcelTestDataWithReturnType : ");
         LOG.debug("LibraryId is :" + libraryId + " and Item Id is :" + itemId);
         ItemService itemService = new RealItemService();
         Item item = itemService.findItem(new LibraryId(Long.valueOf(libraryId.longValue())),
