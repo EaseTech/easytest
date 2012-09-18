@@ -18,17 +18,16 @@ public interface Loader {
      * @param filePaths the list of files from which to load the data
      * @return a Map consisting of the methodName as key and a List of Key/value pairs as the value of the Map.
      * This is currently not a user friendly way of exposing the test data. 
-     * TODO:This may change in future to something thats easier for the users to follow and supply.
      */
     Map<String, List<Map<String, Object>>> loadData(String[] filePaths);
     
     /**
      * Method responsible to write the test data and actual result to the files
-     * @param filePath the list of files to which overwrite the data
-     * @param a Map consisting of the methodName as key and a List of Key/value pairs as the value of the Map.
+     * @param filePath the path to the file to which data needs to be written
+     * @param actualData a Map consisting of the methodName as key and a List of Key/value pairs as the value of the Map. 
+     * This Map contains the input as well as output data 
      * This is currently not a user friendly way of exposing the test data. 
-     * TODO:This may change in future to something thats easier for the users to follow and supply.
      */
-    void writeData(String filePath,Map<String, List<Map<String, Object>>> actualData);
+    void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData);
 
 }

@@ -1,3 +1,4 @@
+
 package org.easetech.easytest.loader;
 
 import java.util.HashMap;
@@ -8,24 +9,24 @@ import java.util.Map;
 /**
  * 
  * An empty loader implementation
- *
+ * 
  */
 public class EmptyLoader implements Loader {
 
     /**
      * Return an empty map
+     * 
      * @param filePaths
      * @return the data to be consumed by the framework
      */
     @Override
     public Map<String, List<Map<String, Object>>> loadData(String[] filePaths) {
-        return new HashMap<String, List<Map<String,Object>>>();
+        return new HashMap<String, List<Map<String, Object>>>();
     }
-    
+
     @Override
-	public void writeData(String filePath,
-			Map<String, List<Map<String, Object>>> actualData) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData) {
+        // TODO Auto-generated method stub
+
+    }
 }

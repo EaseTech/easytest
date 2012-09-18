@@ -46,10 +46,12 @@ public class TestConditionsSupportedByDataDrivenTest {
 
     /**
      * Test DDT runner with a generic MAP parameter
+     * 
      * @param inputData
      */
     @Test
-    public void testDDTGetItem(@Param()Map<String, String> inputData) {
+    public void testDDTGetItem(@Param()
+    Map<String, String> inputData) {
         System.out.print("Executing testDDTGetItem :");
         System.out.println("library Id : " + inputData.get("LibraryId") + " and item type : "
             + inputData.get("itemType") + " and search text array :" + inputData.get("searchText"));
@@ -88,7 +90,8 @@ public class TestConditionsSupportedByDataDrivenTest {
      * @param item an instance of Item object that is automatically converted from a map to an Item instance.
      */
     @Test
-    public void testDDTConverter(@Param()Item item) {
+    public void testDDTConverter(@Param()
+    Item item) {
         System.out.print("Executing testDDTConverter :");
         Assert.assertNotNull(item);
         System.out.println(item.getDescription() + item.getItemId() + item.getItemType());

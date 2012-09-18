@@ -1,3 +1,4 @@
+
 package org.easetech.easytest.example;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import org.easetech.easytest.loader.Loader;
 /**
  * 
  * A Custom Data Loader that simply provides data from the class itself without reading any external files.
- *
+ * 
  */
 public class CustomObjectDataLoader implements Loader {
 
@@ -26,12 +27,11 @@ public class CustomObjectDataLoader implements Loader {
         result.put("testGetItemsWithCustomLoader", list);
         return result;
     }
-    
-        @Override
-	public void writeData(String filePath,
-			Map<String, List<Map<String, Object>>> actualData) {
-		// TODO Auto-generated method stub
-		
-	}
+
+    @Override
+    public void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

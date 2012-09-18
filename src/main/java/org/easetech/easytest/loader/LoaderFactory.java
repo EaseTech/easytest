@@ -4,7 +4,7 @@ import junit.framework.Assert;
 
 
 /**
- * A factory class responsible for churning out Loader instances based on the type of File to load the data from.
+ * A factory class responsible for churning out Loader instances based on the type of {@link LoaderType} to load the data from.
  * @author Anuj kumar
  *
  */
@@ -12,7 +12,7 @@ public class LoaderFactory {
     
     /**
      * Return an instance of {@link Loader} based on the type of file or return null.
-     * @param fileType the type of file
+     * @param loaderType the type of the loader
      * @return an instance of {@link Loader} or null if no loader is found.
      */
     public static Loader getLoader(LoaderType loaderType){

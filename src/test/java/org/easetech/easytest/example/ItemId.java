@@ -1,12 +1,13 @@
+
 package org.easetech.easytest.example;
 
 /**
  * 
  * An example of user defined Strongly typed object
- *
+ * 
  */
 public class ItemId {
-    
+
     /**
      * The id
      */
@@ -15,6 +16,7 @@ public class ItemId {
     /**
      * 
      * Construct a new ItemId
+     * 
      * @param id theid
      */
     public ItemId(Long id) {
@@ -28,6 +30,5 @@ public class ItemId {
     public String toString() {
         return "ItemId [id=" + id + "]";
     }
-    
-    
+
 }

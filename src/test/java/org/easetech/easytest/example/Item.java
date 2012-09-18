@@ -1,11 +1,12 @@
+
 package org.easetech.easytest.example;
 
 public class Item {
-    
+
     private String description;
-    
+
     private String itemType;
-    
+
     private String itemId;
 
     /**
@@ -50,12 +51,9 @@ public class Item {
         this.itemId = itemId;
     }
 
-	@Override
-	public String toString() {
-		return "Item [description=" + description + ", itemType=" + itemType
-				+ ", itemId=" + itemId + "]";
-	}
-    
-    
+    @Override
+    public String toString() {
+        return "Item [description=" + description + ", itemType=" + itemType + ", itemId=" + itemId + "]";
+    }
 
 }

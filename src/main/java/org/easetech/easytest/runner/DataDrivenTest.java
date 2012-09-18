@@ -1,3 +1,4 @@
+
 package org.easetech.easytest.runner;
 
 import java.lang.reflect.Field;
@@ -59,15 +60,15 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class DataDrivenTest extends Suite {
-    
-	//creating following variables for capturing test output
+
+    // creating following variables for capturing test output
     private String[] dataFiles;
     private Loader dataLoader = null;
     private static Map<String, List<Map<String, Object>>> actualData;
     private static int rowNum = 0;
     private String mapMethodName = "";
     private boolean actualDataLoadedOnce = false;
-    
+
     /**
      * An instance of logger associated with the test framework.
      */
@@ -75,18 +76,20 @@ public class DataDrivenTest extends Suite {
 
     /**
      * A {@link BlockJUnit4ClassRunner} Runner implementation that adds support of input parameters as part of the
-     * {@link Test} annotation. This {@link BlockJUnit4ClassRunner} extension is modified for providing convenient Data Driven Testing
-     * support to its users. This Runner is capable of generating new instances of {@link FrameworkMethod} based on the test data 
-     * for a given method. For eg. If there is a method "testMethod(String testData)" that has three sets of test data : [{"testData1"},{"testData2"},{"testData3"}],
+     * {@link Test} annotation. This {@link BlockJUnit4ClassRunner} extension is modified for providing convenient Data
+     * Driven Testing support to its users. This Runner is capable of generating new instances of
+     * {@link FrameworkMethod} based on the test data for a given method. For eg. If there is a method
+     * "testMethod(String testData)" that has three sets of test data : [{"testData1"},{"testData2"},{"testData3"}],
      * then this runner will generate three {@link FrameworkMethod} instances with the method names :<br>
      * testMethod{testData1}<br>
-     * testMethod{testData2}<br>and<br>
+     * testMethod{testData2}<br>
+     * and<br>
      * testMethod{testData3}<br>
      * <br>
      * 
      * <br>
-     * <B> A user can specify the test data at the class level, using the {@link DataLoader} annotation and
-     * override it at the method level. The Runner will take care of executing the test method with the right test data.</B><br>
+     * <B> A user can specify the test data at the class level, using the {@link DataLoader} annotation and override it
+     * at the method level. The Runner will take care of executing the test method with the right test data.</B><br>
      * This is extremely beneficial in cases, where the user just wants to load the data once and then reuse it for all
      * the test methods. If the user wants, then he can always override the test data at the method level by specifying
      * the {@link DataLoader} annotation at the method level. <br>
@@ -96,11 +99,11 @@ public class DataDrivenTest extends Suite {
      * 
      * <br>
      * <br>
-     * There is also a {@link Param} annotation to
-     * handle boiler plate tasks on behalf of the user as well as supports additional functionality that eases the life
-     * of the user. For eg. it supports Java PropertyEditors to automatically convert a String to the specified Object.
-     * It also supports passing a Map to the test method that contains all the available test data key / value pairs for
-     * easy consumption by the user. It also supports user defined custom Objects as parameters.<br>
+     * There is also a {@link Param} annotation to handle boiler plate tasks on behalf of the user as well as supports
+     * additional functionality that eases the life of the user. For eg. it supports Java PropertyEditors to
+     * automatically convert a String to the specified Object. It also supports passing a Map to the test method that
+     * contains all the available test data key / value pairs for easy consumption by the user. It also supports user
+     * defined custom Objects as parameters.<br>
      * <br>
      * 
      * @author Anuj Kumar
@@ -108,7 +111,8 @@ public class DataDrivenTest extends Suite {
     private class EasyTestRunner extends BlockJUnit4ClassRunner {
 
         /**
-         * The name of the test method for which this Runner instance will generate a set of new {@link FrameworkMethod}s, one for each set of test data.
+         * The name of the test method for which this Runner instance will generate a set of new {@link FrameworkMethod}
+         * s, one for each set of test data.
          */
         private final String methodName;
 
@@ -118,7 +122,8 @@ public class DataDrivenTest extends Suite {
         List<FrameworkMethod> frameworkMethods;
 
         /**
-         * Get the method name 
+         * Get the method name
+         * 
          * @return the methodName
          */
         @SuppressWarnings("unused")
@@ -186,18 +191,25 @@ public class DataDrivenTest extends Suite {
             Iterator<FrameworkMethod> testMethodsItr = super.computeTestMethods().iterator();
             Class<?> testClass = getTestClass().getJavaClass();
             while (testMethodsItr.hasNext()) {
-                FrameworkMethod method = testMethodsItr.next();               
+                FrameworkMethod method = testMethodsItr.next();
                 if (superMethodName.equals(DataConverter.getFullyQualifiedTestName(method.getName(), testClass))) {
-                    //Load the data,if any, at the method level
+                    // Load the data,if any, at the method level
                     loadData(null, method, getTestClass().getJavaClass());
                     List<Map<String, Object>> methodData = DataContext.getData().get(superMethodName);
+                    if (methodData == null) {
+                        Assert.fail("Method with name : " + superMethodName
+                            + " expects some input test data. But there doesnt seem to be any test "
+                            + "data for the given method. Please check the Test Data file for the method data. "
+                            + "Possible cause could be a spelling mismatch.");
+                    }
                     for (Map<String, Object> testData : methodData) {
-                        //Create a new FrameworkMethod for each set of test data
+                        // Create a new FrameworkMethod for each set of test data
                         EasyFrameworkMethod easyMethod = new EasyFrameworkMethod(method.getMethod());
                         easyMethod.setName(method.getName().concat(testData.toString()));
                         finalList.add(easyMethod);
                     }
-                    //Since the runner only ever handles a single method, we break out of the loop as soon as we have found our method.
+                    // Since the runner only ever handles a single method, we break out of the loop as soon as we have
+                    // found our method.
                     break;
                 }
             }
@@ -239,10 +251,10 @@ public class DataDrivenTest extends Suite {
         @Override
         protected void validateTestMethods(List<Throwable> errors) {
             for (FrameworkMethod each : computeTestMethods()) {
-/*                if (each.getAnnotation(Test.class) != null)
-                    each.validatePublicVoid(false, errors);
-                else
-                    each.validatePublicVoidNoArg(false, errors);*/
+                /*
+                 * if (each.getAnnotation(Test.class) != null) each.validatePublicVoid(false, errors); else
+                 * each.validatePublicVoidNoArg(false, errors);
+                 */
             }
         }
 
@@ -430,6 +442,20 @@ public class DataDrivenTest extends Suite {
                 }.methodBlock(fTestMethod).evaluate();
             }
 
+            /**
+             * This method is responsible for actually executing the test method as well as capturing the test data returned by the test method.
+             * The algorithm to capture the output data is as follows:
+             * <ol>After the method has been invoked explosively, the returned value is checked. If there is a return value:
+             * <li>We get the name of the method that is currently executing,
+             * <li> We find teh exact place in the test input data for which this method was executed,
+             * <li>We put the returned result in the map of input test data. The entry in the map has the key : "ActualResult" and the value is the returned value by the test method.
+             * 
+             * We finally write the test data to the file.
+             * @param method an instance of {@link FrameworkMethod} that needs to be executed
+             * @param complete an instance of {@link Assignments} that contains the input test data values 
+             * @param freshInstance a fresh instance of the class for which the method needs to be invoked.
+             * @return an instance of {@link Statement}
+             */
             private Statement methodCompletesWithParameters(final FrameworkMethod method, final Assignments complete,
                 final Object freshInstance) {
                 return new Statement() {
@@ -438,26 +464,27 @@ public class DataDrivenTest extends Suite {
                         try {
                             final Object[] values = complete.getMethodArguments(true);
                             Object returnObj = method.invokeExplosively(freshInstance, values);
-                            if(returnObj!=null){
-                            	LOG.debug("returnObj:"+returnObj);
-                            	if(!mapMethodName.equals(method.getMethod().getName())){
-                            		mapMethodName = method.getMethod().getName();                            		
-                            		rowNum = 0;
-                            	}
-                            	LOG.debug("mapMethodName:"+mapMethodName+" ,rowNum:"+rowNum);
-                            	//List<Map<String,Object>> methodData = data.get(mapMethodName);
-                            	//Map<String,Object> returnObjMap = new HashMap<String,Object>();
-                            	//returnObjMap.put("ActualResult",returnObj);
-                            	//actualData = DataContext.getData();
-                            	if(actualData.get(mapMethodName) != null){
-                            		LOG.debug("actualData.get(mapMethodName)"+actualData.get(mapMethodName)+" ,rowNum:"+rowNum);
-                            		//List<Map<String,Object>> methoData = DataContext.getData().get(method.getName());
-                            		//if(DataContext.getData().get(method.getName())!=null){
-                            		actualData.get(mapMethodName).get(rowNum++).put("ActualResult",returnObj);
-                            		//}
-                            	}
-                            	LOG.debug("writeMap:"+actualData.toString());
-                            	dataLoader.writeData(dataFiles[0], actualData);
+                            if (returnObj != null) {
+                                LOG.debug("returnObj:" + returnObj);
+                                if (!mapMethodName.equals(method.getMethod().getName())) {
+                                    mapMethodName = method.getMethod().getName();
+                                    rowNum = 0;
+                                }
+                                LOG.debug("mapMethodName:" + mapMethodName + " ,rowNum:" + rowNum);
+                                // List<Map<String,Object>> methodData = data.get(mapMethodName);
+                                // Map<String,Object> returnObjMap = new HashMap<String,Object>();
+                                // returnObjMap.put("ActualResult",returnObj);
+                                // actualData = DataContext.getData();
+                                if (actualData.get(mapMethodName) != null) {
+                                    LOG.debug("actualData.get(mapMethodName)" + actualData.get(mapMethodName)
+                                        + " ,rowNum:" + rowNum);
+                                    // List<Map<String,Object>> methoData = DataContext.getData().get(method.getName());
+                                    // if(DataContext.getData().get(method.getName())!=null){
+                                    actualData.get(mapMethodName).get(rowNum++).put("ActualResult", returnObj);
+                                    // }
+                                }
+                                LOG.debug("writeMap:" + actualData.toString());
+                                dataLoader.writeData(dataFiles[0], actualData);
                             }
                         } catch (CouldNotGenerateValueException e) {
                             // ignore
@@ -523,10 +550,10 @@ public class DataDrivenTest extends Suite {
         @Override
         protected void validateTestMethods(List<Throwable> errors) {
             for (FrameworkMethod each : computeTestMethods()) {
-                /*if (each.getAnnotation(Test.class) != null)
-                    each.validatePublicVoid(false, errors);
-                else
-                    each.validatePublicVoidNoArg(false, errors);*/
+                /*
+                 * if (each.getAnnotation(Test.class) != null) each.validatePublicVoid(false, errors); else
+                 * each.validatePublicVoidNoArg(false, errors);
+                 */
             }
         }
 
@@ -553,13 +580,13 @@ public class DataDrivenTest extends Suite {
     }
 
     /**
-     * A List of {@link EasyTestRunner}s and {@link GivenTestMethodsRunner}. If the entry in the list is an instance of {@link EasyTestRunner}, 
-     * then the runner corresponds to a single method in the executing test class. Since EasyTest is a data driven testing framework, a single test can be run multiple times by providing
-     * multiple set of test data from outside of the test. In order to give users a clear picture of the test currently
-     * in execution, each method in the test class is wrapped in their own {@link EasyTestRunner}. Each
-     * {@link EasyTestRunner} will internally create a list of methods based on the number i=of input test data for the
-     * given method. For ex. if there is a method <B><I>getTestData</I></B> in the test class which needs to be run with
-     * two sets of input data:
+     * A List of {@link EasyTestRunner}s and {@link GivenTestMethodsRunner}. If the entry in the list is an instance of
+     * {@link EasyTestRunner}, then the runner corresponds to a single method in the executing test class. Since
+     * EasyTest is a data driven testing framework, a single test can be run multiple times by providing multiple set of
+     * test data from outside of the test. In order to give users a clear picture of the test currently in execution,
+     * each method in the test class is wrapped in their own {@link EasyTestRunner}. Each {@link EasyTestRunner} will
+     * internally create a list of methods based on the number i=of input test data for the given method. For ex. if
+     * there is a method <B><I>getTestData</I></B> in the test class which needs to be run with two sets of input data:
      * <ul>
      * <li>libraryId=1 , itemId=2</li>
      * <li>libraryId=34 , itemId=67</li><br>
@@ -572,9 +599,10 @@ public class DataDrivenTest extends Suite {
      * <li>getTestData{libraryId=34,itemId=67}</li>
      * 
      * <br>
-     * In case the instance in the runner list is an instance of {@link GivenTestMethodsRunner}, then this runner will contain ALL the test methods that does not have a data defined for them.
-     * In case it is a simple JUnit test(with @Test annotation and with no parameters), then the runner will simply execute the method. 
-     * In case the test method is of any other type, it will throw error 
+     * In case the instance in the runner list is an instance of {@link GivenTestMethodsRunner}, then this runner will
+     * contain ALL the test methods that does not have a data defined for them. In case it is a simple JUnit test(with @Test
+     * annotation and with no parameters), then the runner will simply execute the method. In case the test method is of
+     * any other type, it will throw error
      */
     private final ArrayList<Runner> runners = new ArrayList<Runner>();
 
@@ -606,19 +634,27 @@ public class DataDrivenTest extends Suite {
      * in the Test Class under test.<br>
      * The algorithm is as follows:<br>
      * <ul>
-     * <li>STEP 1: Load the test data. This will also do the check whether there exists a {@link DataLoader} annotation at the class level</li>
-     * <li> Iterate over each method.<br> For each method:
-     * <ol><li>If method has {@link DataLoader} annotation, it means that there is test data associated with the test method.<br>
-     * In such a case create an new {@link EasyTestRunner} which will take care of actually loading the test data. 
+     * <li>STEP 1: Load the test data. This will also do the check whether there exists a {@link DataLoader} annotation
+     * at the class level</li>
+     * <li>Iterate over each method.<br>
+     * For each method:
+     * <ol>
+     * <li>If method has {@link DataLoader} annotation, it means that there is test data associated with the test
+     * method.<br>
+     * In such a case create an new {@link EasyTestRunner} which will take care of actually loading the test data.
      * <li>If method does not have a {@link DataLoader} annotation, then:
-     * <ol><li>Check if there already exists data for the method. This is possible as the data could have been loaded at the class level.<br>
-     * <li>If the data for the given method exists, create a new {@link EasyTestRunner} instance to take care of executing all the test scenarios for the given test method.
+     * <ol>
+     * <li>Check if there already exists data for the method. This is possible as the data could have been loaded at the
+     * class level.<br>
+     * <li>If the data for the given method exists, create a new {@link EasyTestRunner} instance to take care of
+     * executing all the test scenarios for the given test method.
      * <li>If the data does not exists for the given test method, put it aside in a list of unused methods,
-     * </ol></ol>
+     * </ol>
+     * </ol>
      * Iteration over each method ends.<br>
      * 
-     * If there are unused method that do not have any data associated with it, 
-     * then create an instance of {@link GivenTestMethodsRunner} and pass all the unused methods to it for execution.<br>
+     * If there are unused method that do not have any data associated with it, then create an instance of
+     * {@link GivenTestMethodsRunner} and pass all the unused methods to it for execution.<br>
      * This whole process will happen for each of the test class that is part of the Suite.
      * 
      * @param klass the test class
@@ -627,8 +663,8 @@ public class DataDrivenTest extends Suite {
     public DataDrivenTest(Class<?> klass) throws InitializationError {
         super(klass, Collections.<Runner> emptyList());
         Class<?> testClass = getTestClass().getJavaClass();
-        //Load the data at the class level, if any.
-        loadData(klass, null, testClass);     
+        // Load the data at the class level, if any.
+        loadData(klass, null, testClass);
         List<FrameworkMethod> availableMethods = getTestClass().getAnnotatedMethods(Test.class);
         List<FrameworkMethod> methodsWithNoData = new ArrayList<FrameworkMethod>();
         for (FrameworkMethod method : availableMethods) {
@@ -687,6 +723,8 @@ public class DataDrivenTest extends Suite {
      * Load the Data for the given class or method. This method will try to find {@link DataLoader} on either the class
      * level or the method level. In case the annotation is found, this method will load the data using the specified
      * loader class and then save it in the DataContext for further use by the system.
+     * We also create another copy of the input test data that we store in the {@link DataDrivenTest#actualData} field.
+     * This is done in order to facilitate the writing of the data that might be returned by the test method.
      * 
      * @param testClass the class object, if any.
      * @param method current executing method, if any.
@@ -708,10 +746,10 @@ public class DataDrivenTest extends Suite {
             testData = method.getAnnotation(DataLoader.class);
         }
         if (testData != null) {
-            //String[] dataFiles = testData.filePaths();
+            // String[] dataFiles = testData.filePaths();
             dataFiles = testData.filePaths();
             LoaderType loaderType = testData.loaderType();
-            //Loader 
+            // Loader
             dataLoader = null;
             if (LoaderType.CUSTOM.equals(loaderType)) {
                 PARAM_LOG.info("User specified to use custom Loader. Trying to get the custom loader.");
@@ -752,16 +790,14 @@ public class DataDrivenTest extends Suite {
             if (dataLoader == null) {
                 Assert.fail("The framework currently does not support the specified Loader type. "
                     + "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData "
-                    + "annotation and providing your custom loader using @DataLoader annotation.");
+                    + "annotation and providing your custom loader using DataLoader annotation.");
             } else {
                 Map<String, List<Map<String, Object>>> data = dataLoader.loadData(dataFiles);
-            	if(!actualDataLoadedOnce){
-            		actualData = new HashMap<String, List<Map<String, Object>>>();
-            		for(String key:data.keySet()){
-            			actualData.put(key, data.get(key));
-            		}
-            		actualDataLoadedOnce = true;
-            	}
+                //We also maintain the copy of the actual data for our write functionality.
+                if (!actualDataLoadedOnce) {                   
+                    actualData = new HashMap<String, List<Map<String, Object>>>(data);
+                    actualDataLoadedOnce = true;
+                }
                 DataContext.setData(DataConverter.appendClassName(data, currentTestClass));
                 DataContext.setConvertedData(DataConverter.convert(data, currentTestClass));
 

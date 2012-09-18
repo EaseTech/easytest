@@ -1,3 +1,4 @@
+
 package org.easetech.easytest.example;
 
 import java.util.ArrayList;
@@ -15,26 +16,24 @@ public class RealItemService implements ItemService {
 
     @Override
     public Item findItem(LibraryId libraryId, ItemId itemId) {
-    	System.out.println("findItems Called");
-    	Item item = new Item();
-    	item.setDescription("Item Description");
-    	item.setItemId(itemId.toString());
-    	item.setItemType("BOOK");
+        System.out.println("findItems Called");
+        Item item = new Item();
+        item.setDescription("Item Description");
+        item.setItemId(itemId.toString());
+        item.setItemType("BOOK");
         return item;
     }
-    
-    public static void main(String[] args){
-    	ArrayList<String> stringList = new ArrayList<String>();
-    	stringList.add(null);
-    	Iterator<String> strItr = stringList.iterator();
-    	while(strItr.hasNext()){
-    		System.out.println(strItr.next());
-    	}
-    	for(String str : stringList){
-    		System.out.println(str);
-    	}
-    }
 
-    
+    public static void main(String[] args) {
+        ArrayList<String> stringList = new ArrayList<String>();
+        stringList.add(null);
+        Iterator<String> strItr = stringList.iterator();
+        while (strItr.hasNext()) {
+            System.out.println(strItr.next());
+        }
+        for (String str : stringList) {
+            System.out.println(str);
+        }
+    }
 
 }
