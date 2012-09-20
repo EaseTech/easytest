@@ -1,16 +1,14 @@
 
 package org.easetech.easytest.util;
 
-import org.junit.AfterClass;
-
 import java.util.ArrayList;
-import org.junit.runners.model.MultipleFailureException;
-
 import java.util.List;
 import java.util.Map;
 import org.easetech.easytest.loader.Loader;
+import org.junit.AfterClass;
 import org.junit.internal.runners.statements.RunAfters;
 import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
 /**
@@ -20,16 +18,35 @@ import org.junit.runners.model.Statement;
  */
 public class RunAftersWithOutputData extends RunAfters {
 
+    /**
+     * An instance of {@link Loader} responsible for writing the data to the file.
+     */
     private final Loader loader;
 
+    /**
+     * An array of File paths containing the path to the file to which data needs to be written. 
+     * Currently we take the first path in the array and try to write the output data to that file. 
+     */
     private final String[] filePath;
 
-    private final Map<String, List<Map<String, Object>>> writableData;
+    /**
+     * The actual data structure that contains both the input as well as output data
+     */
+    private Map<String, List<Map<String, Object>>> writableData;
 
+    /**
+     * An instance of {@link Statement} 
+     */
     private final Statement fNext;
 
+    /**
+     * The target class on which to invoke the {@link AfterClass} annotated method
+     */
     private final Object fTarget;
 
+    /**
+     * List of {@link FrameworkMethod} that should be run as part of teh {@link AfterClass} annotation.
+     */
     private final List<FrameworkMethod> fAfters;
 
     /**
@@ -75,7 +92,7 @@ public class RunAftersWithOutputData extends RunAfters {
                 }
         }
         MultipleFailureException.assertEmpty(errors);
-        //Write any output test data to the file.
+        //Write any output test data to the file only if there is a write data associated with the test method.
         if (loader != null && filePath.length > 0) {
             loader.writeData(filePath[0], writableData);
         }

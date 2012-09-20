@@ -284,9 +284,13 @@ public class ExcelDataLoader implements Loader {
         return result;
     }
 
+    /**
+     * Write the data back to the Excel file. The data is written to the same Excel File as it was read from.
+     * @param filePath the path of the file specifying the the file to which data needs to be written.
+     * @param map an instance of {@link Map} containing the data that needs to be written to the file.
+     */
     @Override
     public void writeData(String filePath, Map<String, List<Map<String, Object>>> map) {
-        LOG.info("writeData started");
         LOG.debug("writeData started, filePath:" + filePath + ", data map size:" + map.size() + ", data map:" + map);
         try {
 
@@ -305,8 +309,6 @@ public class ExcelDataLoader implements Loader {
      * @throws IOException if an IO Exception occurs
      */
     private void writeExcelData(String filePath, Map<String, List<Map<String, Object>>> data) throws IOException {
-        System.out.println("writeExcelData started" + filePath + data.size());
-
         LOG.debug("writeExcelData started" + filePath + data.size());
         try {
             ResourceLoader resource = new ResourceLoader(filePath);
@@ -335,6 +337,7 @@ public class ExcelDataLoader implements Loader {
         }
 
         Sheet sheet = workbook.getSheetAt(0);
+        // Sheet sheet = workbook.createSheet();
 
         for (String methodName : data.keySet()) {
             int rowNum = 0;
@@ -344,21 +347,26 @@ public class ExcelDataLoader implements Loader {
                 // rowNum increment by one to proceed with next record of the method.
                 rowNum++;
 
-                Object outputValue = methodData.get("ActualResult");
+                Object outputValue = methodData.get(ACTUAL_RESULT);
                 if (outputValue != null) {
                     // getting no.of columns in the record
                     int columnNum = methodData.size();
                     if (!isActualResultHeaderWritten) {
-                        int recordNum = getMethodRowNumFromExcel(sheet, methodName);
-                        writeDataToCell(sheet, recordNum, columnNum, "ActualResult");
-                        rowNum = rowNum + recordNum;
-                        isActualResultHeaderWritten = true;
+                        Integer recordNum = getMethodRowNumFromExcel(sheet, methodName);
+                        if (recordNum != null) {
+                            writeDataToCell(sheet, recordNum, columnNum, ACTUAL_RESULT);
+                            rowNum = rowNum + recordNum;
+                            isActualResultHeaderWritten = true;
+                        }
                     }
                     LOG.debug("rowNum:" + rowNum);
 
                     // column no is incremented by 2 because first column is null as per test data method structure
                     // and we need to write data next to last non-empty column
-                    writeDataToCell(sheet, rowNum, columnNum, outputValue.toString());
+                    if(isActualResultHeaderWritten){
+                        writeDataToCell(sheet, rowNum, columnNum, outputValue.toString());
+                    }
+                    
                 }
             }
         }
@@ -366,20 +374,18 @@ public class ExcelDataLoader implements Loader {
         workbook.write(resource.getFileOutputStream());
         LOG.debug("writeDataToSpreadsheet finished");
 
-
     }
 
-    private int getMethodRowNumFromExcel(Sheet sheet, String methodName) {
-        int rowNum = 0;
+    private Integer getMethodRowNumFromExcel(Sheet sheet, String methodName) {
+        Integer rowNum = null;
         for (Row row : sheet) {
             // getting first cell value as method name is available in first column
             Cell cell = row.getCell(0);
             if (cell != null) {
                 String cellData = cell.getStringCellValue();
-                System.out.println("cellData :" + cellData);
                 if (cellData != null && methodName.equals(cellData.trim())) {
                     rowNum = cell.getRow().getRowNum();
-                    LOG.debug("methodName matched at rowNum:" + rowNum);
+                    System.out.println("methodName matched at rowNum:" + rowNum);
                     break;
                 }
             }
@@ -391,8 +397,9 @@ public class ExcelDataLoader implements Loader {
     private void writeDataToCell(Sheet sheet, int rowNum, int columnNum, String value) {
         Row row = sheet.getRow(rowNum);
         Cell cell = row.getCell(columnNum);
-        if (cell == null)
+        if (cell == null) {
             cell = row.createCell(columnNum);
+        }
         cell.setCellType(Cell.CELL_TYPE_STRING);
         cell.setCellValue(value);
     }

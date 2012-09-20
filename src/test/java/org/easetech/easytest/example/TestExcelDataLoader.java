@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(org.easetech.easytest.runner.DataDrivenTest.class)
-@DataLoader(filePaths = { "testExcelData.xls" }, loaderType = LoaderType.EXCEL)
+@DataLoader(filePaths = { "org/easetech/data/testExcelData.xls" }, loaderType = LoaderType.EXCEL)
 public class TestExcelDataLoader {
 
     /**
@@ -27,8 +27,8 @@ public class TestExcelDataLoader {
     }
 
     @Test
-    // @DataLoader(filePaths={"overrideExcelData.csv"} , loaderType=LoaderType.CSV)
-    public void getExcelTestDataWithDouble(@Param(name = "libraryId")
+    //@DataLoader(filePaths={"overrideExcelData.csv"} , loaderType=LoaderType.CSV)
+    public Item getExcelTestDataWithDouble(@Param(name = "libraryId")
     Double libraryId, @Param(name = "itemId")
     Double itemId) {
         System.out.print("Executing getExcelTestDataWithDouble :");
@@ -36,6 +36,10 @@ public class TestExcelDataLoader {
         // Assert.fail("ItemId is 11568 but should be 2");
         // }
         System.out.println("LibraryId Anuj is :" + libraryId + " and Item Id is :" + itemId);
+        ItemService itemService = new RealItemService();
+        Item item = itemService.findItem(new LibraryId(Long.valueOf(libraryId.longValue())),
+            new ItemId(Long.valueOf(itemId.longValue())));
+        return item;
     }
 
     @Test
@@ -53,7 +57,7 @@ public class TestExcelDataLoader {
     }
 
     @Test
-    @DataLoader(filePaths = { "testExcelData.xls" }, loaderType = LoaderType.EXCEL)
+    @DataLoader(filePaths = { "org/easetech/data/test-update.xls" }, loaderType = LoaderType.EXCEL)
     public Item getExcelTestDataWithReturnType(@Param(name = "libraryId")
     Float libraryId, @Param(name = "itemId")
     Float itemId) {
@@ -65,5 +69,7 @@ public class TestExcelDataLoader {
         LOG.debug("return item: " + item.toString());
         return item;
     }
+    
+   
 
 }

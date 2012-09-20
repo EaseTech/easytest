@@ -1,3 +1,4 @@
+
 package org.easetech.easytest.util;
 
 import java.io.FileInputStream;
@@ -5,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ResourceLoader {
-    
+
     /**
      * An instance of logger associated with the test framework.
      */
@@ -54,7 +56,7 @@ public class ResourceLoader {
         this.classLoader = null;
     }
 
-   /**
+    /**
      * Return an instance of Input stream for the provided {@link #filePath}
      * 
      * @return an instance of Input stream for the provided {@link #filePath}
@@ -66,16 +68,22 @@ public class ResourceLoader {
         if (this.classLoader == null) {
             classLoader = Thread.currentThread().getContextClassLoader();
         }
-        String path = classLoader.getResource(this.filePath).getPath();
-        LOG.debug("getInputStream() File absolute path:"+path); 
-        
+        URL resource = classLoader.getResource(this.filePath);
+        String path = null;
+        if (resource != null) {
+            path = resource.getPath();
+        }
+
+        LOG.debug("getInputStream() File absolute path:" + path);
+
         if (path == null) {
             throw new FileNotFoundException(filePath + " cannot be opened because it does not exist");
         }
         is = new FileInputStream(path);
+
         return is;
     }
-    
+
     /**
      * Return an instance of FileOutputStream for the provided {@link #filePath}
      * 
@@ -89,13 +97,13 @@ public class ResourceLoader {
             classLoader = Thread.currentThread().getContextClassLoader();
         }
         String path = classLoader.getResource(this.filePath).getPath();
-        LOG.debug("getFileOutputStream File absolute path:"+path);        
+        LOG.debug("getFileOutputStream File absolute path:" + path);
         if (path == null) {
             throw new FileNotFoundException(filePath + " cannot be opened because it does not exist");
         }
-        
+
         fos = new FileOutputStream(path);
         return fos;
-    } 
+    }
 
 }
