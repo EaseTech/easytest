@@ -1,4 +1,3 @@
-
 package org.easetech.easytest.loader;
 
 import java.io.FileNotFoundException;
@@ -102,7 +101,6 @@ public class ExcelDataLoader implements Loader {
 
         data = new HashMap<String, List<Map<String, Object>>>();
         Sheet sheet = workbook.getSheetAt(0);
-        int numberOfColumns = countNonEmptyColumns(sheet);
 
         Map<String, List<Map<String, Object>>> finalData = new HashMap<String, List<Map<String, Object>>>();
 
@@ -113,9 +111,9 @@ public class ExcelDataLoader implements Loader {
             boolean keyRow = false;
 
             Map<String, Object> actualData = new HashMap<String, Object>();
-            for (int column = 0; column < numberOfColumns; column++) {
-
-                Cell cell = row.getCell(column);
+            int column = 0;
+            
+            for (Cell cell:row) {
                 Object cellData = objectFrom(workbook, cell);
                 if (isFirstColumn && cellData != null) {
                     // Indicates that this is a new set of test data.
@@ -134,7 +132,11 @@ public class ExcelDataLoader implements Loader {
 
                 }
                 isFirstColumn = false;
-
+                LOG.debug("column"+column);
+                if(cellData != null){
+                    LOG.debug("column"+column+", cellData:"+cellData.toString());
+                }
+                column++;
             }
             if (!keyRow) {
                 dataValues.add(actualData);
@@ -143,33 +145,7 @@ public class ExcelDataLoader implements Loader {
         return finalData;
     }
 
-    /**
-     * Count the number of columns, using the number of non-empty cells in the first row.
-     * 
-     * @param sheet the excel sheet that contains the data
-     * @return number of non empty columns.
-     */
-    private int countNonEmptyColumns(final Sheet sheet) {
-        Row firstRow = sheet.getRow(0);
-        return firstEmptyCellPosition(firstRow);
-    }
 
-    /**
-     * Get the first empty cell position in the sheet
-     * 
-     * @param cells the row in the sheet
-     * @return the first empty cell position in the sheet
-     */
-    private int firstEmptyCellPosition(final Row cells) {
-        int columnCount = 0;
-        for (Cell cell : cells) {
-            if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
-                break;
-            }
-            columnCount++;
-        }
-        return columnCount;
-    }
 
     /**
      * Get the cell value from the workbook and the specified cell within the workbook.
@@ -209,6 +185,10 @@ public class ExcelDataLoader implements Loader {
             cellValue = new Date(cell.getDateCellValue().getTime());
         } else {
             cellValue = cell.getNumericCellValue();
+            // below is the work around to remove suffix .0 from numeric fields
+            if(cellValue!= null && cellValue.toString().endsWith(".0")){
+                cellValue = cellValue.toString().replace(".0", "");
+            }
         }
         return cellValue;
     }
@@ -347,24 +327,31 @@ public class ExcelDataLoader implements Loader {
                 // rowNum increment by one to proceed with next record of the method.
                 rowNum++;
 
-                Object outputValue = methodData.get(ACTUAL_RESULT);
-                if (outputValue != null) {
+                Object actualResult = methodData.get(ACTUAL_RESULT);
+                if (actualResult != null) {
                     // getting no.of columns in the record
                     int columnNum = methodData.size();
                     if (!isActualResultHeaderWritten) {
                         Integer recordNum = getMethodRowNumFromExcel(sheet, methodName);
                         if (recordNum != null) {
+                            // Write the actual result and test status headers.
                             writeDataToCell(sheet, recordNum, columnNum, ACTUAL_RESULT);
+                            writeDataToCell(sheet,recordNum,columnNum+1,TEST_STATUS);
                             rowNum = rowNum + recordNum;
                             isActualResultHeaderWritten = true;
                         }
                     }
-                    LOG.debug("rowNum:" + rowNum);
-
-                    // column no is incremented by 2 because first column is null as per test data method structure
-                    // and we need to write data next to last non-empty column
+                    LOG.info("rowNum:" + rowNum);
+                    
+                    // Write the actual result and test status values.
                     if(isActualResultHeaderWritten){
-                        writeDataToCell(sheet, rowNum, columnNum, outputValue.toString());
+                    	LOG.debug("actualResult:" + actualResult.toString());
+                        writeDataToCell(sheet, rowNum, columnNum, actualResult.toString());
+                        Object testStatus = methodData.get(TEST_STATUS);                       
+            			if(testStatus != null){ 
+            				LOG.debug("testStatus:" + testStatus.toString());
+            				writeDataToCell(sheet,rowNum,columnNum+1,testStatus.toString());
+            			}
                     }
                     
                 }

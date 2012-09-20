@@ -1,4 +1,3 @@
-
 package org.easetech.easytest.runner;
 
 import java.lang.reflect.Field;
@@ -507,9 +506,12 @@ public class DataDrivenTest extends Suite {
              * <ol>
              * After the method has been invoked explosively, the returned value is checked. If there is a return value:
              * <li>We get the name of the method that is currently executing,
-             * <li>We find teh exact place in the test input data for which this method was executed,
+             * <li>We find the exact place in the test input data for which this method was executed,
              * <li>We put the returned result in the map of input test data. The entry in the map has the key :
              * {@link Loader#ACTUAL_RESULT} and the value is the returned value by the test method.
+             * <li>If expected result{@link Loader#EXPECTED_RESULT} exist in user input data then we compare it with actual result and 
+             *  put the test status either passed/failed. The entry in the map has the key :
+             * {@link Loader#TEST_STATUS} and the value is the either PASSED or FAILED.
              * 
              * We finally write the test data to the file.
              * 
@@ -528,16 +530,36 @@ public class DataDrivenTest extends Suite {
                             Object returnObj = method.invokeExplosively(freshInstance, values);
                             if (returnObj != null) {
                                 LOG.debug("returnObj:" + returnObj);
+                                //checking and assigning the map method name.
                                 if (!mapMethodName.equals(method.getMethod().getName())) {
+                                    // if mapMethodName is not same as the current executing method name
+                                	// then assign that to mapMethodName to write to writableData                                	
                                     mapMethodName = method.getMethod().getName();
+                                    // initialize the row number.
                                     rowNum = 0;
                                 }
                                 LOG.debug("mapMethodName:" + mapMethodName + " ,rowNum:" + rowNum);
                                 if (writableData.get(mapMethodName) != null) {
                                     LOG.debug("writableData.get(mapMethodName)" + writableData.get(mapMethodName)
                                         + " ,rowNum:" + rowNum);
-                                    writableData.get(mapMethodName).get(rowNum++).put(Loader.ACTUAL_RESULT, returnObj);
+                                    Map<String,Object> writableRow = writableData.get(mapMethodName).get(rowNum);
+                                    writableRow.put(Loader.ACTUAL_RESULT, returnObj);     
+                            		
+                            		Object expectedResult = writableRow.get(Loader.EXPECTED_RESULT);
+                            		// if expected result exist in user input test data, 
+                            		// then compare that with actual output result 
+                            		// and write the status back to writable map data.
+                            		if(expectedResult != null) {
+                            			LOG.debug("Expected result exists");
+                            			if(expectedResult.toString().equals(returnObj.toString())){
+                            				writableRow.put(Loader.TEST_STATUS,Loader.TEST_PASSED);
+                            			} else {
+                            				writableRow.put(Loader.TEST_STATUS,Loader.TEST_FAILED);
+                            			}                            			
+                            		}
+                            		rowNum++;
                                 }
+
 
                             }
                         } catch (CouldNotGenerateValueException e) {

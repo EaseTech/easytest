@@ -10,6 +10,8 @@ import org.junit.internal.runners.statements.RunAfters;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An extension of {@link RunAfters} method to write 
@@ -19,6 +21,11 @@ import org.junit.runners.model.Statement;
 public class RunAftersWithOutputData extends RunAfters {
 
     /**
+     * An instance of logger associated with the test framework.
+     */
+    protected static final Logger LOG = LoggerFactory.getLogger(RunAftersWithOutputData.class);
+    
+	/**
      * An instance of {@link Loader} responsible for writing the data to the file.
      */
     private final Loader loader;
@@ -78,6 +85,7 @@ public class RunAftersWithOutputData extends RunAfters {
      */
     @Override
     public void evaluate() throws Throwable {
+    	LOG.info("evaluate started");
         List<Throwable> errors = new ArrayList<Throwable>();
         try {
             fNext.evaluate();
@@ -92,10 +100,13 @@ public class RunAftersWithOutputData extends RunAfters {
                 }
         }
         MultipleFailureException.assertEmpty(errors);
-        //Write any output test data to the file only if there is a write data associated with the test method.
+        // Write any output test data to the file only if there is a write data associated with the test method.
         if (loader != null && filePath.length > 0) {
+        	LOG.debug("Loader:"+loader+", filePath:"+filePath[0]);
+        	LOG.debug("writableData:"+writableData);
             loader.writeData(filePath[0], writableData);
         }
+        LOG.info("evaluate finished");
     }
 
 }
