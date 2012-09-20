@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 public class TestXMLDataLoader {
 
     @Test
-    public void getItemsDataFromXMLLoader(@Param(name = "libraryId")
+    public Item getItemsDataFromXMLLoader(@Param(name = "libraryId")
     String libraryId, @Param(name = "itemId")
     String itemId, @Param(name = "itemType")
     String itemType, @Param(name = "expectedItems")
@@ -20,6 +20,28 @@ public class TestXMLDataLoader {
         System.out.print("Executing getItemsDataFromXMLLoader :");
         System.out.println("LibraryId :" + libraryId + " itemId : " + itemId + " itemType :" + itemType
             + " expectedItems :" + expectedItems);
+        Item item=  new Item();
+        item.setDescription("Description Modified");
+        item.setItemId(itemId);
+        item.setItemType(itemType);
+        return item;
+    }
+    
+    @Test
+    @DataLoader(filePaths = { "input-data-mod.xml" }, loaderType = LoaderType.XML)
+    public Item getItemsDataFromXMLLoaderModified(@Param(name = "libraryId")
+    String libraryId, @Param(name = "itemId")
+    String itemId, @Param(name = "itemType")
+    String itemType, @Param(name = "expectedItems")
+    String expectedItems) {
+        System.out.print("Executing getItemsDataFromXMLLoaderModified :");
+        System.out.println("LibraryId :" + libraryId + " itemId : " + itemId + " itemType :" + itemType
+            + " expectedItems :" + expectedItems);
+        Item item=  new Item();
+        item.setDescription("Description Modified");
+        item.setItemId(itemId);
+        item.setItemType(itemType);
+        return item;
     }
 
 }

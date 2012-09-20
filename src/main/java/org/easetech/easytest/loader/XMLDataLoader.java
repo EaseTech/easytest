@@ -1,6 +1,8 @@
 
 package org.easetech.easytest.loader;
 
+import org.easetech.easytest._1.InputData;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,27 +11,43 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.easetech.easytest._1.Entry;
 import org.easetech.easytest._1.InputTestData;
 import org.easetech.easytest._1.ObjectFactory;
+import org.easetech.easytest._1.OutputData;
 import org.easetech.easytest._1.TestMethod;
 import org.easetech.easytest._1.TestRecord;
 import org.easetech.easytest.util.ResourceLoader;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  * An implementation of {@link Loader} for the XML based files. This Loader is responsible for reading a list of XML
  * Files based on the testDataSchema.xsd file of EasyTest and converting them into a data structure which is
- * understandable by the EasyTest framework. The XML data can be provided by the user in the following format :<br>
+ * understandable by the EasyTest framework. The Loader is also responsible for writing the output data back to the file.<br>
+ * The XML data can be provided by the user in the following format :<br><br>
  * <code>
- * &lt;easytest:InputTestData xmlns:easytest="urn:easetech:easytest:1.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="urn:oclc:merlins:test:Group:1.0 group-reg.xsd"&gt;<br>
+ * 
+ * &lt;easytest:InputTestData xmlns:easytest="urn:org:easetech:easytest:1.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="urn:org:easetech:easytest:1.0 testDataSchema.xsd"&gt;<br>
  * <B>&lt;TestMethod name="getSimpleData"&gt;</B><br>
  * &nbsp;&nbsp;&lt;TestRecord&gt;<br>
  * &nbsp;&nbsp;&lt;InputData&gt;<br>
@@ -64,9 +82,11 @@ import org.slf4j.LoggerFactory;
  * <B>&lt;/TestMethod&gt;</B><br>
  * <B>&lt;/easytest:InputTestData&gt;</B><br><br>
  * 
- * As you can guess, the root element is InputTestData that can have multiple TestMethod elements in it.<br> 
- * Each TestMethod element identifies a method to test with its name attribute.<br>
- * Each TestMethod can have many TestRecords. Each Record identifies data for a single test execution.<br>
+ * As you can guess, the root element is {@link InputTestData} that can have multiple {@link TestMethod} elements in it.<br> 
+ * Each {@link TestMethod} element identifies a method to test with its name attribute.<br>
+ * Each {@link TestMethod} can have many TestRecords. Each Record identifies data for a single test execution.<br>
+ * {@link TestRecord} contains {@link InputData} element as well as {@link OutputData} element. A user never specifies an {@link OutputData} element.
+ * If it is specified, it will be ignored by the {@link Loader}. {@link OutputData} is used internally by the {@link XMLDataLoader} to write output data back to the file. 
  * Each Entry element identifies a method parameter.
  * 
  * @author Anuj Kumar
@@ -78,6 +98,14 @@ public class XMLDataLoader implements Loader {
      * An instance of logger associated with the test framework.
      */
     protected static final Logger LOG = LoggerFactory.getLogger(XMLDataLoader.class);
+
+    /**
+     * A record Position identifier that identifies the exact position of a given test record. It is useful in cases
+     * where we want to compare and identify the exact test record from two different sources of data. In this case, it
+     * will be used to identify the record for which an output test data needs to be written.
+     */
+    private static final String RECORD_POSITION = "recordPosition";
+
 
     /**
      * Load the data from the specified list of filePaths
@@ -164,7 +192,6 @@ public class XMLDataLoader implements Loader {
 
         }
     }
-
     /**
      * Convert the data from List of {@link TestRecord} to a List of map representation. The LIst of map represents the
      * list of test data for a single test method.
@@ -177,6 +204,7 @@ public class XMLDataLoader implements Loader {
         if (dataRecords != null) {
             for (TestRecord record : dataRecords) {
                 Map<String, Object> singleTestData = convertFromListOfEntry(record.getInputData().getEntry());
+                singleTestData.put(RECORD_POSITION, record.getId());
                 result.add(singleTestData);
             }
         }
@@ -211,19 +239,86 @@ public class XMLDataLoader implements Loader {
             context = JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
             LOG.error("Error occured while creating JAXB COntext.", e);
-            throw new RuntimeException("Error occured while creating JAXB Context.", e);
+            //throw new RuntimeException("Error occured while creating JAXB Context.", e);
         }
         return context;
     }
 
     /**
      * Write Data to the existing XML File.
+     * 
      * @param filePath the path to the file to which the data needs to be written
      * @param actualData the actual data that needs to be written to the file.
      */
     @Override
     public void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData) {
-        //Do nothing
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            // File xml = new File(filePath);
+            ResourceLoader resource = new ResourceLoader(filePath);
+            Document document = db.parse(resource.getInputStream());
+            Binder<Node> binder = getJAXBContext().createBinder();
+            binder.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            InputTestData testData = (InputTestData) binder.unmarshal(document);
+            updateTestMethods(testData, actualData);
+            binder.updateXML(testData);
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer t = tf.newTransformer();
+            t.transform(new DOMSource(document), new StreamResult(resource.getFileOutputStream()));
+        } catch (ParserConfigurationException e) {
+            LOG.error("Ignoring the write operation as ParserConfigurationException occured while parsing the file : " + filePath, e);
+        } catch (SAXException e) {
+            LOG.error("Ignoring the write operation as SAXException occured while parsing the file : " + filePath, e);
+        } catch (IOException e) {
+            LOG.error("Ignoring the write operation as IOException occured while parsing the file : " + filePath, e);
+        } catch (JAXBException e) {
+            LOG.error("Ignoring the write operation as JAXBException occured while parsing the file : " + filePath, e);
+        } catch (TransformerException e) {
+            LOG.error("Ignoring the write operation as TransformerException occured while parsing the file : " + filePath, e);
+        }
+
+    }
+
+    /**
+     * This method is responsible for adding the {@link OutputData} element to the existing file.
+     * This method determines the right position of the test record based on the id attribute 
+     * {@link TestRecord#getId()} of the {@link TestRecord}.
+     * 
+     * @param inputTestData an Object representation of the XML data
+     * @param actualData the data structure that contains the output data that needs to be written to the file. 
+     * The output data is identified by the key {@link Loader#ACTUAL_RESULT}
+     */
+    private void updateTestMethods(InputTestData inputTestData, Map<String, List<Map<String, Object>>> actualData) {
+        for (String methodName : actualData.keySet()) {
+            List<Map<String, Object>> testRecords = actualData.get(methodName);
+            for (Map<String, Object> testRecord : testRecords) {
+                Boolean outputDataAdded = false;
+                if (testRecord.containsKey(ACTUAL_RESULT)) {
+                    // The data needs to be written to the XML file.
+                    // Find the right place to put the data.
+                    for (TestMethod testMethod : inputTestData.getTestMethod()) {
+                        List<TestRecord> originalTestRecords = testMethod.getTestRecord();
+                        for (TestRecord originalTestRecord : originalTestRecords) {
+                            if (originalTestRecord.getId().equals(testRecord.get(RECORD_POSITION))) {
+                                OutputData outputData = new OutputData();
+                                Entry outputEntry = new Entry();
+                                outputEntry.setKey(ACTUAL_RESULT);
+                                outputEntry.setValue(testRecord.get(ACTUAL_RESULT).toString());
+                                outputData.getEntry().add(outputEntry);
+                                originalTestRecord.setOutputData(outputData);
+                                outputDataAdded = true;
+                                break;
+                            }
+                        }
+                        if (outputDataAdded) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
     }
 

@@ -9,7 +9,7 @@
    times by the EasyTest framework,
    once each for the given TestRecord.
   </Description>
-  <TestRecord>
+  <TestRecord id="1">
    <Description>This test tries to capture the scenario when the data is
     available in the DB
     for the given set of input parameters. In this
@@ -18,12 +18,12 @@
    </Description>
    <InputData>
     <Entry key="libraryId" value="91475" />
-    <Entry key="itemId" value="26" />
+    <Entry key="itemId" value="2600" />
     <Entry key="itemType" value="book" />
     <Entry key="expectedItems" value="2" />
    </InputData>
   </TestRecord>
-  <TestRecord>
+  <TestRecord id="2">
    <Description>This test tries to capture the scenario when the data is
     available in the DB
     for the given set of input parameters. In this
@@ -32,12 +32,12 @@
    </Description>
    <InputData>
     <Entry key="libraryId" value="91475" />
-    <Entry key="itemId" value="36" />
+    <Entry key="itemId" value="3600" />
     <Entry key="itemType" value="journal" />
     <Entry key="expectedItems" value="1" />
    </InputData>
   </TestRecord>
-  <TestRecord>
+  <TestRecord id="3">
    <Description>This test tries to capture the scenario when the data is
     available in the DB
     for the given set of input parameters. In this
@@ -46,7 +46,7 @@
    </Description>
    <InputData>
     <Entry key="libraryId" value="91475" />
-    <Entry key="itemId" value="40" />
+    <Entry key="itemId" value="4000" />
     <Entry key="itemType" value="ebook" />
     <Entry key="expectedItems" value="0" />
    </InputData>

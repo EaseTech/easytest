@@ -17,6 +17,8 @@ import org.easetech.easytest.loader.Loader;
 import org.easetech.easytest.loader.LoaderFactory;
 import org.easetech.easytest.loader.LoaderType;
 import org.easetech.easytest.util.DataContext;
+import org.easetech.easytest.util.RunAftersWithOutputData;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoint;
@@ -31,6 +33,7 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.Suite;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 import org.slf4j.Logger;
@@ -61,11 +64,32 @@ import org.slf4j.LoggerFactory;
  */
 public class DataDrivenTest extends Suite {
 
-    // creating following variables for capturing test output
+    /**
+     * The list of files that are used by the {@link Loader}s {@link Loader#writeData(String, Map)} 
+     * functionality to write the test data back to the file. This is also passed to the {@link RunAftersWithOutputData} method.
+     */
     private String[] dataFiles;
+    /**
+     * The instance of {@link Loader} that is currently being used. 
+     * This is also passed to the {@link RunAftersWithOutputData}'s constructor which is responsible 
+     * for calling the right {@link Loader#writeData(String, Map)} based on the {@link Loader} instance.
+     * 
+     */
     private Loader dataLoader = null;
-    private static Map<String, List<Map<String, Object>>> actualData = new HashMap<String, List<Map<String, Object>>>();
+    
+    /**
+     * An instance of {@link Map} that contains the data to be written to the File
+     */
+    private static Map<String, List<Map<String, Object>>> writableData = new HashMap<String, List<Map<String, Object>>>();
+    
+    /**
+     * The default rowNum within the {@link #writableData}'s particular method data.
+     */
     private static int rowNum = 0;
+    
+    /**
+     * The name of the method currently being executed. Used for populating the {@link #writableData} map.
+     */
     private String mapMethodName = "";
 
     /**
@@ -249,12 +273,7 @@ public class DataDrivenTest extends Suite {
          */
         @Override
         protected void validateTestMethods(List<Throwable> errors) {
-            for (FrameworkMethod each : computeTestMethods()) {
-                /*
-                 * if (each.getAnnotation(Test.class) != null) each.validatePublicVoid(false, errors); else
-                 * each.validatePublicVoidNoArg(false, errors);
-                 */
-            }
+            //Do Nothing as we now support public non void arg test methods
         }
 
         /**
@@ -265,7 +284,48 @@ public class DataDrivenTest extends Suite {
          */
         @Override
         public Statement methodBlock(final FrameworkMethod method) {
+
             return new ParamAnchor(method, getTestClass());
+        }
+
+        /**
+         * Returns a {@link Statement}: run all non-overridden {@code @AfterClass} methods on this class and
+         * superclasses before executing {@code statement}; all AfterClass methods are always executed: exceptions
+         * thrown by previous steps are combined, if necessary, with exceptions from AfterClass methods into a
+         * {@link MultipleFailureException}.
+         * 
+         * This method is also responsible for writing the data to the output file in case the user is returning test
+         * data from the test method. This method will make sure that the data is written to the output file once after
+         * the Runner has completed and not for every instance of the test method.
+         */
+        @Override
+        protected Statement withAfterClasses(Statement statement) {
+            List<FrameworkMethod> afters = getTestClass().getAnnotatedMethods(AfterClass.class);
+            // THere would always be atleast on method associated with the Runner, else validation would fail.
+            FrameworkMethod method = frameworkMethods.get(0);
+            // Only if the return type of the Method is not VOID, we try to determine the right loader and data files.
+            if (method.getMethod().getReturnType() != Void.TYPE) {
+                DataLoader loaderAnnotation = method.getAnnotation(DataLoader.class);
+                if (loaderAnnotation != null) {
+                    determineLoader(loaderAnnotation);
+
+                } else {
+                    loaderAnnotation = getTestClass().getJavaClass().getAnnotation(DataLoader.class);
+                    if (loaderAnnotation != null) {
+                        determineLoader(loaderAnnotation);
+                    }
+                }
+                if (dataLoader == null) {
+                    Assert.fail("The framework currently does not support the specified Loader type. "
+                        + "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData "
+                        + "annotation and providing your custom loader using DataLoader annotation.");
+                }
+                dataFiles = loaderAnnotation.filePaths();
+            } else {
+                dataLoader = null;
+            }
+
+            return new RunAftersWithOutputData(statement, afters, null, dataLoader, dataFiles, writableData);
         }
 
         /**
@@ -442,16 +502,19 @@ public class DataDrivenTest extends Suite {
             }
 
             /**
-             * This method is responsible for actually executing the test method as well as capturing the test data returned by the test method.
-             * The algorithm to capture the output data is as follows:
-             * <ol>After the method has been invoked explosively, the returned value is checked. If there is a return value:
+             * This method is responsible for actually executing the test method as well as capturing the test data
+             * returned by the test method. The algorithm to capture the output data is as follows:
+             * <ol>
+             * After the method has been invoked explosively, the returned value is checked. If there is a return value:
              * <li>We get the name of the method that is currently executing,
-             * <li> We find teh exact place in the test input data for which this method was executed,
-             * <li>We put the returned result in the map of input test data. The entry in the map has the key : "ActualResult" and the value is the returned value by the test method.
+             * <li>We find teh exact place in the test input data for which this method was executed,
+             * <li>We put the returned result in the map of input test data. The entry in the map has the key :
+             * {@link Loader#ACTUAL_RESULT} and the value is the returned value by the test method.
              * 
              * We finally write the test data to the file.
+             * 
              * @param method an instance of {@link FrameworkMethod} that needs to be executed
-             * @param complete an instance of {@link Assignments} that contains the input test data values 
+             * @param complete an instance of {@link Assignments} that contains the input test data values
              * @param freshInstance a fresh instance of the class for which the method needs to be invoked.
              * @return an instance of {@link Statement}
              */
@@ -470,21 +533,12 @@ public class DataDrivenTest extends Suite {
                                     rowNum = 0;
                                 }
                                 LOG.debug("mapMethodName:" + mapMethodName + " ,rowNum:" + rowNum);
-                                // List<Map<String,Object>> methodData = data.get(mapMethodName);
-                                // Map<String,Object> returnObjMap = new HashMap<String,Object>();
-                                // returnObjMap.put("ActualResult",returnObj);
-                                // actualData = DataContext.getData();
-                                if (actualData.get(mapMethodName) != null) {
-                                    LOG.debug("actualData.get(mapMethodName)" + actualData.get(mapMethodName)
+                                if (writableData.get(mapMethodName) != null) {
+                                    LOG.debug("writableData.get(mapMethodName)" + writableData.get(mapMethodName)
                                         + " ,rowNum:" + rowNum);
-                                    // List<Map<String,Object>> methoData = DataContext.getData().get(method.getName());
-                                    // if(DataContext.getData().get(method.getName())!=null){
-                                    actualData.get(mapMethodName).get(rowNum++).put("ActualResult", returnObj);
-                                    LOG.debug("writeMap:" + actualData.toString());
-                                    dataLoader.writeData(dataFiles[0], actualData);
-                                    // }
+                                    writableData.get(mapMethodName).get(rowNum++).put(Loader.ACTUAL_RESULT, returnObj);
                                 }
-                                
+
                             }
                         } catch (CouldNotGenerateValueException e) {
                             // ignore
@@ -549,12 +603,7 @@ public class DataDrivenTest extends Suite {
          */
         @Override
         protected void validateTestMethods(List<Throwable> errors) {
-            for (FrameworkMethod each : computeTestMethods()) {
-                /*
-                 * if (each.getAnnotation(Test.class) != null) each.validatePublicVoid(false, errors); else
-                 * each.validatePublicVoidNoArg(false, errors);
-                 */
-            }
+            //Do Nothing as we now support non void methods
         }
 
         /**
@@ -722,9 +771,9 @@ public class DataDrivenTest extends Suite {
     /**
      * Load the Data for the given class or method. This method will try to find {@link DataLoader} on either the class
      * level or the method level. In case the annotation is found, this method will load the data using the specified
-     * loader class and then save it in the DataContext for further use by the system.
-     * We also create another copy of the input test data that we store in the {@link DataDrivenTest#actualData} field.
-     * This is done in order to facilitate the writing of the data that might be returned by the test method.
+     * loader class and then save it in the DataContext for further use by the system. We also create another copy of
+     * the input test data that we store in the {@link DataDrivenTest#writableData} field. This is done in order to
+     * facilitate the writing of the data that might be returned by the test method.
      * 
      * @param testClass the class object, if any.
      * @param method current executing method, if any.
@@ -732,7 +781,7 @@ public class DataDrivenTest extends Suite {
      *            get unique method names as there could be methods in different classes with the same name and thus we
      *            want to avoid conflicts.
      */
-    @SuppressWarnings("cast")
+
     protected void loadData(Class<?> testClass, FrameworkMethod method, Class<?> currentTestClass) {
         if (testClass == null && method == null) {
             Assert
@@ -741,64 +790,72 @@ public class DataDrivenTest extends Suite {
         // We give priority to Class Loading and then to method loading
         DataLoader testData = null;
         if (testClass != null) {
-            testData = (DataLoader) testClass.getAnnotation(DataLoader.class);
+            testData = testClass.getAnnotation(DataLoader.class);
         } else {
             testData = method.getAnnotation(DataLoader.class);
         }
         if (testData != null) {
-            // String[] dataFiles = testData.filePaths();
-            dataFiles = testData.filePaths();
-            LoaderType loaderType = testData.loaderType();
-            // Loader
-            dataLoader = null;
-            if (LoaderType.CUSTOM.equals(loaderType)) {
-                PARAM_LOG.info("User specified to use custom Loader. Trying to get the custom loader.");
-                if (testData.loader() == null) {
-                    Assert.fail("Specified the LoaderType as CUSTOM but did not specify loader"
-                        + " attribute. A loaderType of CUSTOM requires the loader " + "attribute specifying "
-                        + "the Custom Loader Class which implements Loader interface.");
-                } else {
-                    try {
-                        Class<? extends Loader> loaderClass = testData.loader();
-                        dataLoader = loaderClass.newInstance();
-                    } catch (Exception e) {
-                        throw new RuntimeException("Exception occured while trying to instantiate a class of type :"
-                            + testData.loader(), e);
-                    }
-                }
-            } else if (dataFiles.length == 0) {
-                // No files specified, implies user wants to load data with
-                // custom loader
-                if (testData.loader() == null) {
-                    Assert.fail("Specified the LoaderType as CUSTOM but did not specify loader"
-                        + " attribute. A loaderType of CUSTOM requires the loader " + "attribute specifying "
-                        + "the Custom Loader Class which implements Loader interface.");
-                } else {
-                    try {
-                        Class<? extends Loader> loaderClass = testData.loader();
-                        dataLoader = loaderClass.newInstance();
-                    } catch (Exception e) {
-                        throw new RuntimeException("Exception occured while trying to instantiate a class of type :"
-                            + testData.loader(), e);
-                    }
-                }
-            } else {
-                // user has specified data files and the data fileType is also
-                // not custom.
-                dataLoader = LoaderFactory.getLoader(loaderType);
-            }
+            determineLoader(testData);
             if (dataLoader == null) {
                 Assert.fail("The framework currently does not support the specified Loader type. "
                     + "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData "
                     + "annotation and providing your custom loader using DataLoader annotation.");
             } else {
                 Map<String, List<Map<String, Object>>> data = dataLoader.loadData(dataFiles);
-                //We also maintain the copy of the actual data for our write functionality.
-                actualData.putAll(data);
+                // We also maintain the copy of the actual data for our write functionality.
+                writableData.putAll(data);
                 DataContext.setData(DataConverter.appendClassName(data, currentTestClass));
                 DataContext.setConvertedData(DataConverter.convert(data, currentTestClass));
 
             }
+        }
+    }
+
+    /**
+     * Method that determines the right Loader and the right Data Files for the "write output data" functionality
+     * supported by the EasyTest Framework.
+     * @param testData an instance of {@link DataLoader} that helps in identifying the right {@link Loader} to write the data back to the file.
+     */
+    private void determineLoader(DataLoader testData) {
+        dataFiles = testData.filePaths();
+        LoaderType loaderType = testData.loaderType();
+        // Loader
+        dataLoader = null;
+        if (LoaderType.CUSTOM.equals(loaderType)) {
+            PARAM_LOG.info("User specified to use custom Loader. Trying to get the custom loader.");
+            if (testData.loader() == null) {
+                Assert.fail("Specified the LoaderType as CUSTOM but did not specify loader"
+                    + " attribute. A loaderType of CUSTOM requires the loader " + "attribute specifying "
+                    + "the Custom Loader Class which implements Loader interface.");
+            } else {
+                try {
+                    Class<? extends Loader> loaderClass = testData.loader();
+                    dataLoader = loaderClass.newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException("Exception occured while trying to instantiate a class of type :"
+                        + testData.loader(), e);
+                }
+            }
+        } else if (dataFiles.length == 0) {
+            // No files specified, implies user wants to load data with
+            // custom loader
+            if (testData.loader() == null) {
+                Assert.fail("Specified the LoaderType as CUSTOM but did not specify loader"
+                    + " attribute. A loaderType of CUSTOM requires the loader " + "attribute specifying "
+                    + "the Custom Loader Class which implements Loader interface.");
+            } else {
+                try {
+                    Class<? extends Loader> loaderClass = testData.loader();
+                    dataLoader = loaderClass.newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException("Exception occured while trying to instantiate a class of type :"
+                        + testData.loader(), e);
+                }
+            }
+        } else {
+            // user has specified data files and the data fileType is also
+            // not custom.
+            dataLoader = LoaderFactory.getLoader(loaderType);
         }
     }
 
