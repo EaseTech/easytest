@@ -209,6 +209,10 @@ public class ExcelDataLoader implements Loader {
             cellValue = new Date(cell.getDateCellValue().getTime());
         } else {
             cellValue = cell.getNumericCellValue();
+            // below is the work around to remove suffix .0 from numeric fields
+            if (cellValue != null && cellValue.toString().endsWith(".0")) {
+                cellValue = cellValue.toString().replace(".0", "");
+            }
         }
         return cellValue;
     }
@@ -286,6 +290,7 @@ public class ExcelDataLoader implements Loader {
 
     /**
      * Write the data back to the Excel file. The data is written to the same Excel File as it was read from.
+     * 
      * @param filePath the path of the file specifying the the file to which data needs to be written.
      * @param map an instance of {@link Map} containing the data that needs to be written to the file.
      */
@@ -347,26 +352,33 @@ public class ExcelDataLoader implements Loader {
                 // rowNum increment by one to proceed with next record of the method.
                 rowNum++;
 
-                Object outputValue = methodData.get(ACTUAL_RESULT);
-                if (outputValue != null) {
+                Object actualResult = methodData.get(ACTUAL_RESULT);
+                if (actualResult != null) {
                     // getting no.of columns in the record
                     int columnNum = methodData.size();
                     if (!isActualResultHeaderWritten) {
                         Integer recordNum = getMethodRowNumFromExcel(sheet, methodName);
                         if (recordNum != null) {
+                            // Write the actual result and test status headers.
                             writeDataToCell(sheet, recordNum, columnNum, ACTUAL_RESULT);
+                            //writeDataToCell(sheet, recordNum, columnNum + 1, TEST_STATUS);
                             rowNum = rowNum + recordNum;
                             isActualResultHeaderWritten = true;
                         }
                     }
-                    LOG.debug("rowNum:" + rowNum);
+                    LOG.info("rowNum:" + rowNum);
 
-                    // column no is incremented by 2 because first column is null as per test data method structure
-                    // and we need to write data next to last non-empty column
-                    if(isActualResultHeaderWritten){
-                        writeDataToCell(sheet, rowNum, columnNum, outputValue.toString());
+                    // Write the actual result and test status values.
+                    if (isActualResultHeaderWritten) {
+                        LOG.debug("actualResult:" + actualResult.toString());
+                        writeDataToCell(sheet, rowNum, columnNum, actualResult.toString());
+                        Object testStatus = methodData.get(TEST_STATUS);
+                        if (testStatus != null) {
+                            LOG.debug("testStatus:" + testStatus.toString());
+                            writeDataToCell(sheet, rowNum, columnNum + 1, testStatus.toString());
+                        }
                     }
-                    
+
                 }
             }
         }

@@ -7,9 +7,11 @@ import org.easetech.easytest.loader.LoaderType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(org.easetech.easytest.runner.DataDrivenTest.class)
+@RunWith(org.easetech.easytest.runner.DataDrivenTestRunner.class)
 @DataLoader(filePaths = { "input-data.xml" }, loaderType = LoaderType.XML)
 public class TestXMLDataLoader {
+    
+    
 
     @Test
     public Item getItemsDataFromXMLLoader(@Param(name = "libraryId")

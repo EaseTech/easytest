@@ -7,7 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 
 public class RealItemService implements ItemService {
+    
+    public String testString;
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<Item> getItems(LibraryId libraryId, String searchText, String itemType) {
         System.out.println("getItems Called");

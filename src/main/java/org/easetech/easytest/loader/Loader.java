@@ -18,6 +18,23 @@ public interface Loader {
     String ACTUAL_RESULT = "ActualResult";
     
     /**
+     * The key identifying the expected output that needs to be compared with actual result
+     */
+    String EXPECTED_RESULT = "ExpectedResult";
+    
+    /**
+     * The key identifying the Test Status either PASSED/FAILED 
+     * determined after comparing expected and actual results, and written to the file.
+     */
+    String TEST_STATUS = "TestStatus";
+    
+    /**
+     * The constants for test status PASSED/FAILED 
+     */    
+    final String TEST_PASSED = "PASSED";
+    final String TEST_FAILED = "FAILED";
+    
+    /**
      * Method responsible to Load the test data from the list of files passed as parameter
      * @param filePaths the list of files from which to load the data
      * @return a Map consisting of the methodName as key and a List of Key/value pairs as the value of the Map.

@@ -1,8 +1,6 @@
 
 package org.easetech.easytest.example;
 
-import org.easetech.easytest.runner.DataDrivenTest;
-
 import java.beans.PropertyEditorManager;
 import java.util.Map;
 import junit.framework.Assert;
@@ -11,6 +9,8 @@ import org.easetech.easytest.annotation.Param;
 import org.easetech.easytest.converter.ConverterManager;
 import org.easetech.easytest.example.editors.LibraryIdEditor;
 import org.easetech.easytest.loader.LoaderType;
+import org.easetech.easytest.runner.DataDrivenTest;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import org.junit.runner.RunWith;
  * method level as well.
  * 
  */
-@RunWith(org.easetech.easytest.runner.DataDrivenTest.class)
+@RunWith(org.easetech.easytest.runner.DataDrivenTestRunner.class)
 @DataLoader(filePaths = { "getDDTData.csv" }, loaderType = LoaderType.CSV)
 public class TestConditionsSupportedByDataDrivenTest {
 
@@ -39,9 +39,16 @@ public class TestConditionsSupportedByDataDrivenTest {
      * Example showing the usage of propertyEditors for getting custom object.
      */
     @BeforeClass
-    public static void setUp() {
+    public static void setUpGone() {
+        System.out.println("Should be printed only once");
         PropertyEditorManager.registerEditor(LibraryId.class, LibraryIdEditor.class);
         ConverterManager.registerConverter(ItemConverter.class);
+    }
+    
+    @AfterClass
+    public static void tearDown() {
+        System.out.println("Should ALSO be printed only once");
+        
     }
 
     /**

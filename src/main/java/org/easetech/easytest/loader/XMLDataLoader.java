@@ -204,7 +204,6 @@ public class XMLDataLoader implements Loader {
         if (dataRecords != null) {
             for (TestRecord record : dataRecords) {
                 Map<String, Object> singleTestData = convertFromListOfEntry(record.getInputData().getEntry());
-                singleTestData.put(RECORD_POSITION, record.getId());
                 result.add(singleTestData);
             }
         }

@@ -1,14 +1,16 @@
 
 package org.easetech.easytest.interceptor;
 
+import org.easetech.easytest.runner.DataDrivenTestRunner;
+
 import org.easetech.easytest.runner.DataDrivenTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(DataDrivenTest.class)
+@RunWith(DataDrivenTestRunner.class)
 public class CGLIBEnhancerTest {
 
-    // @TestSubject() public static RealItemService itemService = new RealItemService();
+    // @Intercept() public static RealItemService itemService = new RealItemService();
 
     @Test
     public void testGetItemEnh() {

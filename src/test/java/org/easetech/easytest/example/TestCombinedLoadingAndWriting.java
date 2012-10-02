@@ -7,7 +7,7 @@ import org.easetech.easytest.annotation.Param;
 import org.easetech.easytest.loader.LoaderType;
 import org.junit.Test;
 
-@RunWith(org.easetech.easytest.runner.DataDrivenTest.class)
+@RunWith(org.easetech.easytest.runner.DataDrivenTestRunner.class)
 public class TestCombinedLoadingAndWriting {
 
     @Test

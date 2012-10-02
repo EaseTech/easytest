@@ -10,15 +10,22 @@ import org.junit.internal.runners.statements.RunAfters;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An extension of {@link RunAfters} method to write 
  * the test data to the file at the end of executing all the test methods in the test cases.
  * 
  */
-public class RunAftersWithOutputData extends RunAfters {
+public class RunAftersWithOutputData extends Statement {
 
     /**
+     * An instance of logger associated with the test framework.
+     */
+    protected static final Logger LOG = LoggerFactory.getLogger(RunAftersWithOutputData.class);
+    
+	/**
      * An instance of {@link Loader} responsible for writing the data to the file.
      */
     private final Loader loader;
@@ -63,7 +70,7 @@ public class RunAftersWithOutputData extends RunAfters {
      */
     public RunAftersWithOutputData(Statement next, List<FrameworkMethod> afters, Object target, Loader loader,
         String[] filePath, Map<String, List<Map<String, Object>>> writableData) {
-        super(next, afters, target);
+        super();
         this.fNext = next;
         this.fAfters = afters;
         this.fTarget = target;
@@ -78,6 +85,7 @@ public class RunAftersWithOutputData extends RunAfters {
      */
     @Override
     public void evaluate() throws Throwable {
+    	LOG.info("evaluate started");
         List<Throwable> errors = new ArrayList<Throwable>();
         try {
             fNext.evaluate();
@@ -92,10 +100,13 @@ public class RunAftersWithOutputData extends RunAfters {
                 }
         }
         MultipleFailureException.assertEmpty(errors);
-        //Write any output test data to the file only if there is a write data associated with the test method.
+        // Write any output test data to the file only if there is a write data associated with the test method.
         if (loader != null && filePath.length > 0) {
+        	LOG.debug("Loader:"+loader+", filePath:"+filePath[0]);
+        	LOG.debug("writableData:"+writableData);
             loader.writeData(filePath[0], writableData);
         }
+        LOG.info("evaluate finished");
     }
 
 }
