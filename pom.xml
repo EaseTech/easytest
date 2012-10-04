@@ -16,7 +16,7 @@
  <description>EasyTest is a JUnit extension perform Data Driven Testing with ease and simplicity. 
     It supports method parameters with Test annotation and much more.</description>
  <url>https://github.com/EaseTech/easytest</url>
- <version>0.6.0</version>
+ <version>0.6.2-SNAPSHOT</version>
 
  <developers>
   <developer>
@@ -34,20 +34,11 @@
    <comments>A business-friendly OSS license</comments>
   </license>
  </licenses>
- <issueManagement>
-  <system>GitHub</system>
-  <url>https://github.com/EaseTech/easytest/issues</url>
- </issueManagement>
- <distributionManagement>
-  <repository>
-   <id>EasyTest</id>
-   <url>https://github.com/EaseTech/easytest.git</url>
-  </repository>
- </distributionManagement>
+
  <scm>
-  <connection>scm:git:git@github.com:EaseTech/easytest.git</connection>
-  <developerConnection>scm:git:git@github.com:EaseTech/easytest.git</developerConnection>
-  <url>scm:git:git@github.com:EaseTech/easytest.git</url>
+  <connection>scm:git:https://anujgandharv@github.com/EaseTech/easytest.git</connection>
+  <developerConnection>scm:git:https://anujgandharv@github.com/EaseTech/easytest.git</developerConnection>
+  <url>scm:git:https://anujgandharv@github.com/EaseTech/easytest</url>
  </scm>
 
  <build>
@@ -98,36 +89,85 @@
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-gpg-plugin</artifactId>
-    <executions>
-     <execution>
-      <id>sign-artifacts</id>
-      <phase>verify</phase>
-      <goals>
-       <goal>sign</goal>
-      </goals>
-     </execution>
-    </executions>
+    <version>1.1</version>
+   <configuration>
+	 <useAgent>true</useAgent>
+   </configuration>
    </plugin>
    <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-release-plugin</artifactId>
-    <version>2.2.1</version>
-    <executions>
-     <execution>
-      <id>default</id>
-      <goals>
-       <goal>prepare</goal>
-      </goals>
-      <configuration>
-       <pomFileName>
-        easytest/pom.xml
-       </pomFileName>
-      </configuration>
-     </execution>
-    </executions>
-   </plugin>
+                   <groupId>org.apache.maven.plugins</groupId>
+                   <artifactId>maven-release-plugin</artifactId>
+                   <version>2.2.2</version>
+                   <configuration>
+                       <username>anujgandharv</username>
+   
+                       <mavenExecutorId>forked-path</mavenExecutorId>
+                   </configuration>
+            </plugin>
+   
   </plugins>
  </build>
+ 
+ <profiles>
+ 		<profile>
+ 			<id>sourceAndjavadoc</id>
+ 			<build>
+ 				<plugins>
+ 					<plugin>
+ 						<groupId>org.apache.maven.plugins</groupId>
+ 						<artifactId>maven-source-plugin</artifactId>
+ 						<executions>
+ 							<execution>
+ 								<id>attach-source</id>
+ 								<goals>
+ 									<goal>jar</goal>
+ 								</goals>
+ 							</execution>
+ 						</executions>
+ 					</plugin>
+ 					<plugin>
+ 						<groupId>org.apache.maven.plugins</groupId>
+ 						<artifactId>maven-javadoc-plugin</artifactId>
+ 						<executions>
+ 							<execution>
+ 								<id>attach-javadocs</id>
+ 								<goals>
+ 									<goal>jar</goal>
+ 								</goals>
+ 							</execution>
+ 						</executions>
+ 					</plugin>
+ 				</plugins>
+ 			</build>
+ 		</profile>
+ 		<profile>
+ 		<id>release-sign-artifacts</id>
+ 		<activation>
+ 		  <property>
+ 			<name>performRelease</name>
+ 			<value>true</value>
+ 		  </property>
+ 		</activation>
+ 		<build>
+ 		  <plugins>
+ 			<plugin>
+ 			  <groupId>org.apache.maven.plugins</groupId>
+ 			  <artifactId>maven-gpg-plugin</artifactId>
+ 			  <version>1.1</version>
+ 			  <executions>
+ 				<execution>
+ 				  <id>sign-artifacts</id>
+ 				  <phase>verify</phase>
+ 				  <goals>
+ 					<goal>sign</goal>
+ 				  </goals>
+ 				</execution>
+ 			  </executions>
+ 			</plugin>
+ 		  </plugins>
+ 		</build>
+ 		</profile>
+	</profiles>
 
  <dependencies>
   <dependency>

@@ -5,13 +5,14 @@ import org.easetech.easytest.annotation.DataLoader;
 import org.easetech.easytest.annotation.Intercept;
 import org.easetech.easytest.annotation.Param;
 import org.easetech.easytest.loader.LoaderType;
+import org.easetech.easytest.runner.DataDrivenTestRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@RunWith(org.easetech.easytest.runner.DataDrivenTestRunner.class)
+@RunWith(DataDrivenTestRunner.class)
 @DataLoader(filePaths = { "org/easetech/data/testExcelData.xls" }, loaderType = LoaderType.EXCEL)
 public class TestExcelDataLoader {
     

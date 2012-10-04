@@ -1,18 +1,17 @@
 
 package org.easetech.easytest.loader;
 
-import org.easetech.easytest.util.DataContext;
-
-import org.easetech.easytest.runner.DataDrivenTest;
+import org.easetech.easytest.runner.DataDrivenTestRunner;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.easetech.easytest.util.DataContext;
 
 /**
  * 
- * A Utility class that helps {@link DataDrivenTest} and {@link DataContext} classes to store the input test data in a
+ * A Utility class that helps {@link DataDrivenTestRunner} and {@link DataContext} classes to store the input test data in a
  * format that is easy to display to the user as well as easy to interpret.
  * 
  */

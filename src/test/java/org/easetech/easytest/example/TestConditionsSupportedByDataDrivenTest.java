@@ -9,7 +9,7 @@ import org.easetech.easytest.annotation.Param;
 import org.easetech.easytest.converter.ConverterManager;
 import org.easetech.easytest.example.editors.LibraryIdEditor;
 import org.easetech.easytest.loader.LoaderType;
-import org.easetech.easytest.runner.DataDrivenTest;
+import org.easetech.easytest.runner.DataDrivenTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -19,12 +19,12 @@ import org.junit.runner.RunWith;
 
 /**
  * 
- * An example test class that tries to list different scenarios of using {@link DataDrivenTest} and its supports
+ * An example test class that tries to list different scenarios of using {@link DataDrivenTestRunner} and its supports
  * annotations and classes. We are loading the test data at the class level, but the user can override the data at the
  * method level as well.
  * 
  */
-@RunWith(org.easetech.easytest.runner.DataDrivenTestRunner.class)
+@RunWith(DataDrivenTestRunner.class)
 @DataLoader(filePaths = { "getDDTData.csv" }, loaderType = LoaderType.CSV)
 public class TestConditionsSupportedByDataDrivenTest {
 
