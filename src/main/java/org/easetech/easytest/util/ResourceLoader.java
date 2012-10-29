@@ -1,6 +1,8 @@
 
 package org.easetech.easytest.util;
 
+import java.io.FileWriter;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -104,6 +106,21 @@ public class ResourceLoader {
 
         fos = new FileOutputStream(path);
         return fos;
+    }
+    
+    public FileWriter getFileWriter(Boolean appendData) throws IOException{
+        FileWriter writer = null;
+        ClassLoader classLoader = this.classLoader;
+        if (this.classLoader == null) {
+            classLoader = Thread.currentThread().getContextClassLoader();
+        }
+        String path = classLoader.getResource(this.filePath).getPath();
+        if (path == null) {
+            throw new FileNotFoundException(filePath + " cannot be opened because it does not exist");
+        }
+        writer = new FileWriter(path, appendData);
+        return writer;
+        
     }
 
 }

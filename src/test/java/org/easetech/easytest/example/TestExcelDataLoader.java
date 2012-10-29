@@ -1,6 +1,10 @@
 
 package org.easetech.easytest.example;
 
+import org.easetech.easytest.annotation.Report.EXPORT_FORMAT;
+
+import junit.framework.Assert;
+
 import org.easetech.easytest.annotation.DataLoader;
 import org.easetech.easytest.annotation.Intercept;
 import org.easetech.easytest.annotation.Param;
@@ -12,7 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+
 
 @RunWith(DataDrivenTestRunner.class)
 @DataLoader(filePaths = { "org/easetech/data/testExcelData.xls" }, loaderType = LoaderType.EXCEL)
@@ -41,7 +45,7 @@ public class TestExcelDataLoader {
     }
 
     @Test
-    //@DataLoader(filePaths={"overrideExcelData.csv"} , loaderType=LoaderType.CSV)
+    @DataLoader(filePaths={"overrideExcelData.csv"} , loaderType=LoaderType.CSV)
     public Item getExcelTestDataWithDouble(@Param(name = "libraryId")
     Double libraryId, @Param(name = "itemId")
     Double itemId) {
@@ -84,7 +88,7 @@ public class TestExcelDataLoader {
         
         Boolean test = Boolean.FALSE;
         
-        Assert.isTrue(test, "test TRUE expected");
+        Assert.assertTrue( "test TRUE expected" ,test);
         return item;
     }
     

@@ -173,7 +173,7 @@ public class CustomCSVDataLoader implements Loader {
      * @param actualData
      */
     @Override
-    public void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData) {
+    public void writeData(String[] filePaths, String methodName, Map<String, List<Map<String, Object>>> actualData) {
         // TODO Auto-generated method stub
 
     }

@@ -23,6 +23,11 @@ public interface Loader {
     String EXPECTED_RESULT = "ExpectedResult";
     
     /**
+     * Constant for empty string
+     */
+    String EMPTY_STRING = " ";
+    
+    /**
      * The key identifying the Test Status either PASSED/FAILED 
      * determined after comparing expected and actual results, and written to the file.
      */
@@ -44,11 +49,12 @@ public interface Loader {
     
     /**
      * Method responsible for writing the test data and actual result back to the file
-     * @param filePath the path to the file to which data needs to be written
+     * @param filePaths the paths to the file to which data needs to be written
+     * @param methodName the name of the method to write the data for
      * @param actualData a Map consisting of the methodName as key and a List of Key/value pairs as the value of the Map. 
      * This Map contains the input as well as output data 
      * This is currently not a user friendly way of exposing the test data. 
      */
-    void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData);
+    void writeData(String[] filePaths, String methodName, Map<String, List<Map<String, Object>>> actualData);
 
 }

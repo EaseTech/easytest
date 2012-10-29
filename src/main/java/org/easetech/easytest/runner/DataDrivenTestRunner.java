@@ -23,6 +23,7 @@ import org.easetech.easytest.reports.data.ReportDataContainer;
 import org.easetech.easytest.reports.data.TestResultBean;
 import org.easetech.easytest.util.DataContext;
 import org.easetech.easytest.util.RunAftersWithOutputData;
+import org.easetech.easytest.util.TestInfo;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,7 +32,9 @@ import org.junit.experimental.theories.PotentialAssignment;
 import org.junit.experimental.theories.PotentialAssignment.CouldNotGenerateValueException;
 import org.junit.experimental.theories.internal.Assignments;
 import org.junit.internal.AssumptionViolatedException;
+import org.junit.internal.runners.model.EachTestNotifier;
 import org.junit.runner.Runner;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.Suite;
 import org.junit.runners.model.FrameworkMethod;
@@ -68,19 +71,6 @@ import org.springframework.aop.framework.ProxyFactory;
  * 
  */
 public class DataDrivenTestRunner extends Suite {
-
-    /**
-     * The list of files that are used by the {@link Loader}s {@link Loader#writeData(String, Map)} functionality to
-     * write the test data back to the file. This is also passed to the {@link RunAftersWithOutputData} method.
-     */
-    private String[] dataFiles;
-    /**
-     * The instance of {@link Loader} that is currently being used. This is also passed to the
-     * {@link RunAftersWithOutputData}'s constructor which is responsible for calling the right
-     * {@link Loader#writeData(String, Map)} based on the {@link Loader} instance.
-     * 
-     */
-    private Loader dataLoader = null;
 
     /**
      * An instance of {@link Map} that contains the data to be written to the File
@@ -158,7 +148,7 @@ public class DataDrivenTestRunner extends Suite {
          * instance fields on a test class.
          */
         Object testInstance;
-        
+
         TestResultBean testResult;
 
         /**
@@ -177,6 +167,7 @@ public class DataDrivenTestRunner extends Suite {
                 // initialize report container class
                 // TODO add condition whether reports must be switched on or off
                 testReportContainer = new ReportDataContainer(getTestClass().getJavaClass());
+
             } catch (Exception e) {
                 Assert.fail("Test failed while trying to instrument fileds in the class : "
                     + getTestClass().getJavaClass());
@@ -224,7 +215,6 @@ public class DataDrivenTestRunner extends Suite {
         @Override
         protected void collectInitializationErrors(List<Throwable> errors) {
             super.collectInitializationErrors(errors);
-            // validateDataPointFields(errors);
         }
 
         /**
@@ -254,7 +244,6 @@ public class DataDrivenTestRunner extends Suite {
             if (frameworkMethods != null && !frameworkMethods.isEmpty()) {
                 return frameworkMethods;
             }
-
             List<FrameworkMethod> finalList = new ArrayList<FrameworkMethod>();
             // Iterator<FrameworkMethod> testMethodsItr = super.computeTestMethods().iterator();
             Class<?> testClass = getTestClass().getJavaClass();
@@ -337,32 +326,32 @@ public class DataDrivenTestRunner extends Suite {
         @Override
         protected Statement withAfterClasses(Statement statement) {
             List<FrameworkMethod> afters = getTestClass().getAnnotatedMethods(AfterClass.class);
-            // THere would always be atleast on method associated with the Runner, else validation would fail.
-            FrameworkMethod method = frameworkMethods.get(0);
-            // Only if the return type of the Method is not VOID, we try to determine the right loader and data files.
-            if (method.getMethod().getReturnType() != Void.TYPE) {
+            List<FrameworkMethod> testMethods = getTestClass().getAnnotatedMethods(Test.class);
+            List<TestInfo> testInfoList = new ArrayList<TestInfo>();
+            TestInfo testInfo = null;
+            // populateTestInfo(testInfo);
+            // THere would always be atleast one method associated with the Runner, else validation would fail.
+            for (FrameworkMethod method : testMethods) {
+
+                // Only if the return type of the Method is not VOID, we try to determine the right loader and data
+                // files.
                 DataLoader loaderAnnotation = method.getAnnotation(DataLoader.class);
                 if (loaderAnnotation != null) {
-                    determineLoader(loaderAnnotation);
+                    testInfo = determineLoader(loaderAnnotation, getTestClass());
 
                 } else {
                     loaderAnnotation = getTestClass().getJavaClass().getAnnotation(DataLoader.class);
                     if (loaderAnnotation != null) {
-                        determineLoader(loaderAnnotation);
+                        testInfo = determineLoader(loaderAnnotation, getTestClass());
                     }
                 }
-                if (dataLoader == null) {
-                    Assert.fail("The framework currently does not support the specified Loader type. "
-                        + "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData "
-                        + "annotation and providing your custom loader using DataLoader annotation.");
+                if (testInfo != null) {
+                    testInfo.setMethodName(method.getName());
+                    testInfoList.add(testInfo);
                 }
-                dataFiles = loaderAnnotation.filePaths();
-            } else {
-                dataLoader = null;
-            }
 
-            return new RunAftersWithOutputData(statement, afters, null, dataLoader, dataFiles, writableData,
-                testReportContainer);
+            }
+            return new RunAftersWithOutputData(statement, afters, null, testInfoList, writableData, testReportContainer);
         }
 
         /**
@@ -376,6 +365,8 @@ public class DataDrivenTestRunner extends Suite {
              * An instance of logger associated with the test framework.
              */
             protected final Logger LOG = LoggerFactory.getLogger(EasyTestRunner.ParamAnchor.class);
+
+            private int successes = 0;
 
             /**
              * an instance of {@link FrameworkMethod} identifying the method to be tested.
@@ -439,7 +430,10 @@ public class DataDrivenTestRunner extends Suite {
             @Override
             public void evaluate() throws Throwable {
                 runWithAssignment(Assignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
-                
+                LOG.debug("ParamAnchor evaluate");
+                if (successes == 0)
+                    Assert.fail("Never found parameters that satisfied method assumptions.  Violated assumptions: "
+                        + fInvalidParameters);
             }
 
             /**
@@ -480,11 +474,7 @@ public class DataDrivenTestRunner extends Suite {
                     listOfAssignments.add(Assignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
                 }
                 for (Assignments assignments : listOfAssignments) {
-                    try {
-                        runWithCompleteAssignment(assignments);
-                    } catch (Exception e) {
-                        reportParameterizedError(e, assignments.getArgumentStrings(true));
-                    }
+                    runWithCompleteAssignment(assignments);
                 }
             }
 
@@ -509,28 +499,39 @@ public class DataDrivenTestRunner extends Suite {
                     @Override
                     public Statement methodBlock(FrameworkMethod method) {
                         final Statement statement = super.methodBlock(method);
+                        // Sample Run Notifier to catch any runnable events for a test and do something.
+                        final RunNotifier notifier = new RunNotifier();
+                        notifier.addListener(new EasyTestRunListener());
+                        final EachTestNotifier eachNotifier = new EachTestNotifier(notifier, null);
+                        eachNotifier.fireTestStarted();
+
                         return new Statement() {
                             @Override
                             public void evaluate() throws Throwable {
                                 try {
                                     statement.evaluate();
+                                    handleDataPointSuccess();
                                 } catch (AssumptionViolatedException e) {
+                                    eachNotifier.addFailedAssumption(e);
                                     handleAssumptionViolation(e);
                                 } catch (Throwable e) {
-                                	if (e instanceof IllegalArgumentException) { // Assertion error
-                                		testResult.setPassed(Boolean.FALSE);
+                                    if (e instanceof AssertionError) { // Assertion error
+                                        testResult.setPassed(Boolean.FALSE);
                                         testResult.setResult(e.getMessage());
-                                	} else { // Exception
-                                		testResult.setException(Boolean.TRUE);
+                                    } else { // Exception
+                                        testResult.setException(Boolean.TRUE);
                                         testResult.setExceptionResult(e.toString());
-                                	}
-                                	testReportContainer.addTestResult(testResult);
-                                    
-                                	reportParameterizedError(e, complete.getArgumentStrings(true));
+                                    }
+                                    testReportContainer.addTestResult(testResult);
+
+                                    reportParameterizedError(e, complete.getArgumentStrings(true));
+                                } finally {
+                                    eachNotifier.fireTestFinished();
                                 }
                             }
 
                         };
+
                     }
 
                     @Override
@@ -567,62 +568,76 @@ public class DataDrivenTestRunner extends Suite {
              */
             private Statement methodCompletesWithParameters(final FrameworkMethod method, final Assignments complete,
                 final Object freshInstance) {
+
                 return new Statement() {
                     @Override
                     public void evaluate() throws Throwable {
-                        String currentMethodName = method.getMethod().getName();
+                    	String currentMethodName = method.getMethod().getName();
                         testResult = new TestResultBean();
                         testResult.setMethod(currentMethodName);
                         testResult.setDate(new Date());
-
                         Object returnObj = null;
-
                         try {
                             final Object[] values = complete.getMethodArguments(true);
                             // Log Statistics about the test method as well as the actual testSubject, if required.
-
-                            if (!mapMethodName.equals(currentMethodName)) {
-                                // if mapMethodName is not same as the current executing method name
-                                // then assign that to mapMethodName to write to writableData
-                                mapMethodName = currentMethodName;
-                                // initialize the row number.
-                                rowNum = 0;
-                            }
-                            boolean testContainsInputParams = true;
+                            boolean testContainsInputParams = (values.length != 0);
                             Map<String, Object> inputData = null;
-                            if (writableData.get(mapMethodName) != null) {
-                                LOG.debug("writableData.get(mapMethodName)" + writableData.get(mapMethodName)
-                                    + " ,rowNum:" + rowNum);
-                                inputData = writableData.get(mapMethodName).get(rowNum);
-                                testResult.setInput(inputData);
-                                rowNum++;
-                                
-                            }else{
-                                testContainsInputParams = false;
-                                testResult.setInput(null);
-                                //The test case is of a simple JUnit type which does not take any input parameters
-                            }
+                            
+
                             returnObj = method.invokeExplosively(freshInstance, values);
                             testResult.setOutput((returnObj == null) ? "void" : returnObj);
                             testResult.setPassed(Boolean.TRUE);
-
+                            if (!mapMethodName.equals(method.getMethod().getName())) {
+                                // if mapMethodName is not same as the current executing method name
+                                // then assign that to mapMethodName to write to writableData
+                                mapMethodName = method.getMethod().getName();
+                                // initialize the row number.
+                                rowNum = 0;
+                            }
+                            if (writableData.get(mapMethodName) != null) {
+                                inputData = writableData.get(mapMethodName).get(rowNum);
+                                testResult.setInput(inputData);
+                            }else{
+                                testResult.setInput(null);
+                            }
+                            
                             if (returnObj != null) {
                                 LOG.debug("returnObj:" + returnObj);
                                 // checking and assigning the map method name.
                                 
                                 LOG.debug("mapMethodName:" + mapMethodName + " ,rowNum:" + rowNum);
-                                if (testContainsInputParams) {
+                                if (writableData.get(mapMethodName) != null) {
+                                    LOG.debug("writableData.get(mapMethodName)" + writableData.get(mapMethodName)
+                                        + " ,rowNum:" + rowNum);
+                                    
+                                    Map<String, Object> writableRow = writableData.get(mapMethodName).get(rowNum);
+                                    writableRow.put(Loader.ACTUAL_RESULT, returnObj);
+                                    if (testContainsInputParams) {
                                     LOG.debug("writableData.get(mapMethodName)" + writableData.get(mapMethodName)
                                         + " ,rowNum:" + rowNum);
                                     inputData.put(Loader.ACTUAL_RESULT, returnObj);
                                     
                                 }
 
+                                    Object expectedResult = writableRow.get(Loader.EXPECTED_RESULT);
+                                    // if expected result exist in user input test data,
+                                    // then compare that with actual output result
+                                    // and write the status back to writable map data.
+                                    if (expectedResult != null) {
+                                        LOG.debug("Expected result exists");
+                                        if (expectedResult.toString().equals(returnObj.toString())) {
+                                            writableRow.put(Loader.TEST_STATUS, Loader.TEST_PASSED);
+                                        } else {
+                                            writableRow.put(Loader.TEST_STATUS, Loader.TEST_FAILED);
+                                        }
+                                    }
+                                    rowNum++;
+                                }
+
                             }
                         } catch (CouldNotGenerateValueException e) {
-                            reportParameterizedError(e, complete.getArgumentStrings(true));
+                            // ignore
                         }
-                       
                         testReportContainer.addTestResult(testResult);
                     }
                 };
@@ -638,6 +653,9 @@ public class DataDrivenTestRunner extends Suite {
                 throw new ParamAssertionError(e, fTestMethod.getName(), params);
             }
 
+            protected void handleDataPointSuccess() {
+                successes++;
+            }
         }
 
     }
@@ -789,13 +807,14 @@ public class DataDrivenTestRunner extends Suite {
             testData = method.getAnnotation(DataLoader.class);
         }
         if (testData != null) {
-            determineLoader(testData);
-            if (dataLoader == null) {
+            TestInfo testInfo = determineLoader(testData, getTestClass());
+            Loader dataLoader = testInfo.getDataLoader();
+            if (testInfo.getDataLoader() == null) {
                 Assert.fail("The framework currently does not support the specified Loader type. "
                     + "You can provide the custom Loader by choosing LoaderType.CUSTOM in TestData "
                     + "annotation and providing your custom loader using DataLoader annotation.");
             } else {
-                Map<String, List<Map<String, Object>>> data = dataLoader.loadData(dataFiles);
+                Map<String, List<Map<String, Object>>> data = dataLoader.loadData(testInfo.getFilePaths());
                 // We also maintain the copy of the actual data for our write functionality.
                 writableData.putAll(data);
                 DataContext.setData(DataConverter.appendClassName(data, currentTestClass));
@@ -815,17 +834,31 @@ public class DataDrivenTestRunner extends Suite {
     }
 
     /**
+     * Returns a {@link Statement}: We override this method as it was being called twice for the same class. Looks like
+     * a bug in JUnit.
+     */
+    @Override
+    protected Statement withAfterClasses(Statement statement) {
+        return statement;
+    }
+
+    /**
      * Method that determines the right Loader and the right Data Files for the "write output data" functionality
      * supported by the EasyTest Framework.
      * 
      * @param testData an instance of {@link DataLoader} that helps in identifying the right {@link Loader} to write the
      *            data back to the file.
+     * @param testClass the class that the {@link TestInfo} object will be associated with
+     * 
+     * @return {@link TestInfo} an instance of {@link TestInfo} containing information about the currently executing
+     *         test.
      */
-    private void determineLoader(DataLoader testData) {
-        dataFiles = testData.filePaths();
+    private TestInfo determineLoader(DataLoader testData, TestClass testClass) {
+        TestInfo result = new TestInfo(testClass);
+        String[] dataFiles = testData.filePaths();
         LoaderType loaderType = testData.loaderType();
         // Loader
-        dataLoader = null;
+        Loader dataLoader = null;
         if (LoaderType.CUSTOM.equals(loaderType)) {
             PARAM_LOG.info("User specified to use custom Loader. Trying to get the custom loader.");
             if (testData.loader() == null) {
@@ -862,6 +895,9 @@ public class DataDrivenTestRunner extends Suite {
             // not custom.
             dataLoader = LoaderFactory.getLoader(loaderType);
         }
+        result.setDataLoader(dataLoader);
+        result.setFilePaths(dataFiles);
+        return result;
     }
 
 }

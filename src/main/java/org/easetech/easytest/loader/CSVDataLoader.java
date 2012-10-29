@@ -2,12 +2,14 @@
 package org.easetech.easytest.loader;
 
 import com.csvreader.CsvReader;
+import com.csvreader.CsvWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,8 +167,71 @@ public class CSVDataLoader implements Loader {
     }
 
     @Override
-    public void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData) {
-        // TODO Auto-generated method stub
+    public void writeData(String[] filePaths, String methodName, Map<String, List<Map<String, Object>>> actualData) {
+        Boolean isKeyRow = true;
+        List<String[]> writableData = new ArrayList<String[]>();
+        try {
+            ResourceLoader resource = new ResourceLoader(filePaths[0]);
+            CsvReader csvReader = new CsvReader(new InputStreamReader(resource.getInputStream()), COMMA_SEPARATOR);
+            // use FileWriter constructor that specifies open for overriding
+
+            String currentMethodName = "";
+            int dataRowIndex = 0;
+            while (csvReader.readRecord()) {
+                String[] splitValues = csvReader.getValues();
+                String[] newSplitValues = Arrays.copyOf(splitValues, splitValues.length);
+                if (splitValues.length > 0 && "".equals(splitValues[0])) {
+                    isKeyRow = false;
+
+                } else {
+                    isKeyRow = true;
+                    currentMethodName = splitValues[0];
+                    if (!currentMethodName.equals(methodName)) {
+                        writableData.add(splitValues);
+                        continue;
+                    }
+                }
+
+                if (isKeyRow) {
+                    dataRowIndex = 0;
+                    List<Map<String, Object>> currentMethodData = actualData.get(currentMethodName);
+                    if (currentMethodData != null && !currentMethodData.isEmpty()) {
+                        if (currentMethodData.get(0).keySet().contains(Loader.ACTUAL_RESULT)) {
+                            int length = splitValues.length;
+                            newSplitValues = Arrays.copyOf(splitValues, length + 1);
+                            newSplitValues[length] = Loader.ACTUAL_RESULT;
+                        }
+                    }
+                    writableData.add(newSplitValues);
+                } else {
+                    if (!currentMethodName.equals(methodName)) {
+                        writableData.add(splitValues);
+                        continue;
+                    }
+                    List<Map<String, Object>> currentMethodData = actualData.get(currentMethodName);
+                    Map<String, Object> currentRowData = currentMethodData.get(dataRowIndex++);
+                    Collection<Object> values = currentRowData.values();
+                    List<String> listValues = new ArrayList<String>();
+                    listValues.add(EMPTY_STRING);
+                    for (Object value : values) {
+                        listValues.add(value.toString());
+                    }
+                    String[] newValues = listValues.toArray(new String[listValues.size()]);
+                    writableData.add(newValues);
+                }
+
+            }
+            CsvWriter csvWriter = new CsvWriter(resource.getFileWriter(false), COMMA_SEPARATOR);
+            // finally we have the values in order to be written to the CSV file.
+            for (String[] data : writableData) {
+                csvWriter.writeRecord(data);
+                
+            }
+            csvWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

@@ -291,17 +291,17 @@ public class ExcelDataLoader implements Loader {
     /**
      * Write the data back to the Excel file. The data is written to the same Excel File as it was read from.
      * 
-     * @param filePath the path of the file specifying the the file to which data needs to be written.
+     * @param filePaths the paths of the file specifying the the file to which data needs to be written.
      * @param map an instance of {@link Map} containing the data that needs to be written to the file.
      */
     @Override
-    public void writeData(String filePath, Map<String, List<Map<String, Object>>> map) {
-        LOG.debug("writeData started, filePath:" + filePath + ", data map size:" + map.size() + ", data map:" + map);
+    public void writeData(String[] filePaths, String methodName, Map<String, List<Map<String, Object>>> map) {
+        LOG.debug("writeData started, filePath:" + filePaths + ", data map size:" + map.size() + ", data map:" + map);
         try {
 
-            writeExcelData(filePath, map);
+            writeExcelData(filePaths[0], methodName, map);
         } catch (IOException e) {
-            Assert.fail("An I/O exception occured while reading the files from the path :" + filePath.toString());
+            Assert.fail("An I/O exception occured while reading the files from the path :" + filePaths[0]);
         }
         LOG.info("writeData finished");
     }
@@ -310,14 +310,15 @@ public class ExcelDataLoader implements Loader {
      * writes map data to excel file. it gets FileWriter from ResourceLoader and writeDataToSpreadsheet
      * 
      * @param filePath The path to the file to which the data will be written
+     * @param methodName the name of the method to write the data for
      * @param data a Map of method name and the list of associated test input and output data with that method name
      * @throws IOException if an IO Exception occurs
      */
-    private void writeExcelData(String filePath, Map<String, List<Map<String, Object>>> data) throws IOException {
+    private void writeExcelData(String filePath, String methodName, Map<String, List<Map<String, Object>>> data) throws IOException {
         LOG.debug("writeExcelData started" + filePath + data.size());
         try {
             ResourceLoader resource = new ResourceLoader(filePath);
-            writeDataToSpreadsheet(resource, data);
+            writeDataToSpreadsheet(resource, methodName, data);
         } catch (FileNotFoundException e) {
             LOG.error("The specified file was not found. The path is : {}", filePath);
             LOG.error("Continuing with the loading of next file.");
@@ -329,7 +330,7 @@ public class ExcelDataLoader implements Loader {
         LOG.debug("writeExcelData finished" + filePath + data.size());
     }
 
-    private void writeDataToSpreadsheet(ResourceLoader resource, Map<String, List<Map<String, Object>>> data)
+    private void writeDataToSpreadsheet(ResourceLoader resource, String methodNameForDataLoad, Map<String, List<Map<String, Object>>> data)
         throws IOException {
         LOG.debug("writeDataToSpreadsheet started" + resource.toString() + data);
         Workbook workbook;
@@ -346,6 +347,9 @@ public class ExcelDataLoader implements Loader {
 
         for (String methodName : data.keySet()) {
             int rowNum = 0;
+            if(!methodName.equals(methodNameForDataLoad)){
+                continue;
+            }
 
             boolean isActualResultHeaderWritten = false;
             for (Map<String, Object> methodData : data.get(methodName)) {
@@ -397,7 +401,6 @@ public class ExcelDataLoader implements Loader {
                 String cellData = cell.getStringCellValue();
                 if (cellData != null && methodName.equals(cellData.trim())) {
                     rowNum = cell.getRow().getRowNum();
-                    System.out.println("methodName matched at rowNum:" + rowNum);
                     break;
                 }
             }

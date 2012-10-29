@@ -203,7 +203,9 @@ public class XMLDataLoader implements Loader {
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
         if (dataRecords != null) {
             for (TestRecord record : dataRecords) {
+                
                 Map<String, Object> singleTestData = convertFromListOfEntry(record.getInputData().getEntry());
+                singleTestData.put(RECORD_POSITION, record.getId());
                 result.add(singleTestData);
             }
         }
@@ -238,7 +240,7 @@ public class XMLDataLoader implements Loader {
             context = JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
             LOG.error("Error occured while creating JAXB COntext.", e);
-            //throw new RuntimeException("Error occured while creating JAXB Context.", e);
+            throw new RuntimeException("Error occurred while creating JAXB Context.", e);
         }
         return context;
     }
@@ -246,36 +248,37 @@ public class XMLDataLoader implements Loader {
     /**
      * Write Data to the existing XML File.
      * 
-     * @param filePath the path to the file to which the data needs to be written
+     * @param filePaths the paths to the file to which the data needs to be written
+     * @param methodName the name of the method to write data for
      * @param actualData the actual data that needs to be written to the file.
      */
     @Override
-    public void writeData(String filePath, Map<String, List<Map<String, Object>>> actualData) {
+    public void writeData(String[] filePaths, String methodName, Map<String, List<Map<String, Object>>> actualData) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             DocumentBuilder db = dbf.newDocumentBuilder();
             // File xml = new File(filePath);
-            ResourceLoader resource = new ResourceLoader(filePath);
+            ResourceLoader resource = new ResourceLoader(filePaths[0]);
             Document document = db.parse(resource.getInputStream());
             Binder<Node> binder = getJAXBContext().createBinder();
             binder.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             InputTestData testData = (InputTestData) binder.unmarshal(document);
-            updateTestMethods(testData, actualData);
+            updateTestMethods(testData, methodName, actualData);
             binder.updateXML(testData);
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer t = tf.newTransformer();
             t.transform(new DOMSource(document), new StreamResult(resource.getFileOutputStream()));
         } catch (ParserConfigurationException e) {
-            LOG.error("Ignoring the write operation as ParserConfigurationException occured while parsing the file : " + filePath, e);
+            LOG.error("Ignoring the write operation as ParserConfigurationException occured while parsing the file : " + filePaths[0], e);
         } catch (SAXException e) {
-            LOG.error("Ignoring the write operation as SAXException occured while parsing the file : " + filePath, e);
+            LOG.error("Ignoring the write operation as SAXException occured while parsing the file : " + filePaths[0], e);
         } catch (IOException e) {
-            LOG.error("Ignoring the write operation as IOException occured while parsing the file : " + filePath, e);
+            LOG.error("Ignoring the write operation as IOException occured while parsing the file : " + filePaths[0], e);
         } catch (JAXBException e) {
-            LOG.error("Ignoring the write operation as JAXBException occured while parsing the file : " + filePath, e);
+            LOG.error("Ignoring the write operation as JAXBException occured while parsing the file : " + filePaths[0], e);
         } catch (TransformerException e) {
-            LOG.error("Ignoring the write operation as TransformerException occured while parsing the file : " + filePath, e);
+            LOG.error("Ignoring the write operation as TransformerException occured while parsing the file : " + filePaths[0], e);
         }
 
     }
@@ -287,10 +290,14 @@ public class XMLDataLoader implements Loader {
      * 
      * @param inputTestData an Object representation of the XML data
      * @param actualData the data structure that contains the output data that needs to be written to the file. 
+     * @param methodToWriteDataFor the method for which data needs to be written
      * The output data is identified by the key {@link Loader#ACTUAL_RESULT}
      */
-    private void updateTestMethods(InputTestData inputTestData, Map<String, List<Map<String, Object>>> actualData) {
+    private void updateTestMethods(InputTestData inputTestData, String methodToWriteDataFor , Map<String, List<Map<String, Object>>> actualData) {
         for (String methodName : actualData.keySet()) {
+            if(!methodName.equals(methodToWriteDataFor)){
+                continue;
+            }
             List<Map<String, Object>> testRecords = actualData.get(methodName);
             for (Map<String, Object> testRecord : testRecords) {
                 Boolean outputDataAdded = false;
