@@ -1,10 +1,7 @@
 
 package org.easetech.easytest.example;
 
-import org.easetech.easytest.annotation.Report.EXPORT_FORMAT;
-
-import junit.framework.Assert;
-
+import java.util.List;
 import org.easetech.easytest.annotation.DataLoader;
 import org.easetech.easytest.annotation.Intercept;
 import org.easetech.easytest.annotation.Param;
@@ -39,7 +36,7 @@ public class TestExcelDataLoader {
     @Test
     public void getExcelTestData(@Param(name = "libraryId")
     Float libraryId, @Param(name = "itemId")
-    Float itemId) {
+    Float itemId ) {
         System.out.print("Executing getExcelTestData :");
         System.out.println("LibraryId is :" + libraryId + " and Item Id is :" + itemId);
     }

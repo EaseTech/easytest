@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +121,7 @@ public class CSVDataLoader implements Loader {
         Map<Integer, String> tempData = new HashMap<Integer, String>();
         data = new HashMap<String, List<Map<String, Object>>>();
         while (csvReader.readRecord()) {
-            Map<String, Object> actualData = new HashMap<String, Object>();
+            Map<String, Object> actualData = new HashMap<String, Object>();   
             String[] splitValues = csvReader.getValues();
             if (splitValues.length > 0 && "".equals(splitValues[0])) {
                 isKeyRow = false;
@@ -177,6 +176,7 @@ public class CSVDataLoader implements Loader {
 
             String currentMethodName = "";
             int dataRowIndex = 0;
+            String[] dataKeys = null;
             while (csvReader.readRecord()) {
                 String[] splitValues = csvReader.getValues();
                 String[] newSplitValues = Arrays.copyOf(splitValues, splitValues.length);
@@ -184,6 +184,7 @@ public class CSVDataLoader implements Loader {
                     isKeyRow = false;
 
                 } else {
+                    dataKeys = splitValues;
                     isKeyRow = true;
                     currentMethodName = splitValues[0];
                     if (!currentMethodName.equals(methodName)) {
@@ -210,14 +211,12 @@ public class CSVDataLoader implements Loader {
                     }
                     List<Map<String, Object>> currentMethodData = actualData.get(currentMethodName);
                     Map<String, Object> currentRowData = currentMethodData.get(dataRowIndex++);
-                    Collection<Object> values = currentRowData.values();
-                    List<String> listValues = new ArrayList<String>();
-                    listValues.add(EMPTY_STRING);
-                    for (Object value : values) {
-                        listValues.add(value.toString());
+                    String[] finalValues = new String[dataKeys.length];
+                    finalValues[0] = EMPTY_STRING;
+                    for(int i=1 ;i<dataKeys.length ; i++){
+                        finalValues[i] = (currentRowData.get(dataKeys[i]) == null ? "null" :currentRowData.get(dataKeys[i]).toString());
                     }
-                    String[] newValues = listValues.toArray(new String[listValues.size()]);
-                    writableData.add(newValues);
+                    writableData.add(finalValues);
                 }
 
             }
@@ -230,7 +229,7 @@ public class CSVDataLoader implements Loader {
             csvWriter.close();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
     }

@@ -1,6 +1,10 @@
 
 package org.easetech.easytest.example;
 
+
+
+import java.sql.Date;
+
 import java.beans.PropertyEditorManager;
 import java.util.Map;
 
@@ -31,6 +35,11 @@ import org.junit.runner.RunWith;
 @DataLoader(filePaths = { "getDDTData.csv" }, loaderType = LoaderType.CSV)
 @Report
 public class TestConditionsSupportedByDataDrivenTest {
+    
+    @Test
+    public void testBug(@Param(name="className") String name, @Param(name="dateDebut")Date dateDebut , @Param(name="dateFin")Date dateFin){
+        System.out.println("Class Name :" + name + " DateDebut : " + dateDebut + " dateFin :" + dateFin);
+    }
 
     /**
      * A Junit annotated({@link Rule}) expected Exception rule that gives us the ability to specify what exception is
