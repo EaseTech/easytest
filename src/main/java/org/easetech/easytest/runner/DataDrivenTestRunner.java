@@ -1,6 +1,8 @@
 
 package org.easetech.easytest.runner;
 
+import org.easetech.easytest.internal.EasyAssignments;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -392,7 +394,7 @@ public class DataDrivenTestRunner extends Suite {
              * itemType=journal, searchText=batman}]]</li> AND <li>[[{LibraryId=1, itemType=ebook, searchText=potter}]]
              * 
              */
-            private List<Assignments> listOfAssignments;
+            private List<EasyAssignments> listOfAssignments;
 
             /**
              * List of Invalid parameters
@@ -418,7 +420,7 @@ public class DataDrivenTestRunner extends Suite {
             public ParamAnchor(FrameworkMethod method, TestClass testClass) {
                 fTestMethod = method;
                 fTestClass = testClass;
-                listOfAssignments = new ArrayList<Assignments>();
+                listOfAssignments = new ArrayList<EasyAssignments>();
                 DataContext.setMethodName(DataConverter.getFullyQualifiedTestName(method.getName(),
                     testClass.getJavaClass()));
             }
@@ -429,7 +431,7 @@ public class DataDrivenTestRunner extends Suite {
 
             @Override
             public void evaluate() throws Throwable {
-                runWithAssignment(Assignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
+                runWithAssignment(EasyAssignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
                 LOG.debug("ParamAnchor evaluate");
                 if (successes == 0)
                     Assert.fail("Never found parameters that satisfied method assumptions.  Violated assumptions: "
@@ -447,17 +449,17 @@ public class DataDrivenTestRunner extends Suite {
              *            supplied test data
              * @throws Throwable if any exception occurs.
              */
-            protected void runWithAssignment(Assignments parameterAssignment) throws Throwable {
+            protected void runWithAssignment(EasyAssignments parameterAssignment) throws Throwable {
                 while (!parameterAssignment.isComplete()) {
                     List<PotentialAssignment> potentialAssignments = parameterAssignment.potentialsForNextUnassigned();
                     boolean isFirstSetOfArguments = listOfAssignments.isEmpty();
                     for (int i = 0; i < potentialAssignments.size(); i++) {
                         if (isFirstSetOfArguments) {
-                            Assignments assignments = Assignments
+                            EasyAssignments assignments = EasyAssignments
                                 .allUnassigned(fTestMethod.getMethod(), getTestClass());
                             listOfAssignments.add(assignments.assignNext(potentialAssignments.get(i)));
                         } else {
-                            Assignments assignments = listOfAssignments.get(i);
+                            EasyAssignments assignments = listOfAssignments.get(i);
                             try {
                                 listOfAssignments.set(i, assignments.assignNext(potentialAssignments.get(i)));
                             } catch (IndexOutOfBoundsException e) {
@@ -471,9 +473,9 @@ public class DataDrivenTestRunner extends Suite {
                 if (listOfAssignments.isEmpty()) {
                     LOG.debug("The list of Assignments is null. It normally happens when the user has not supplied any parameters to the test.");
                     LOG.debug(" Creating an instance of Assignments object with all its value unassigned.");
-                    listOfAssignments.add(Assignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
+                    listOfAssignments.add(EasyAssignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
                 }
-                for (Assignments assignments : listOfAssignments) {
+                for (EasyAssignments assignments : listOfAssignments) {
                     runWithCompleteAssignment(assignments);
                 }
             }
@@ -488,7 +490,7 @@ public class DataDrivenTestRunner extends Suite {
              * @throws NoSuchMethodException if an error occurs because no such method with the given name exists.
              * @throws Throwable any other error
              */
-            protected void runWithCompleteAssignment(final Assignments complete) throws InstantiationException,
+            protected void runWithCompleteAssignment(final EasyAssignments complete) throws InstantiationException,
                 IllegalAccessException, InvocationTargetException, NoSuchMethodException, Throwable {
                 new BlockJUnit4ClassRunner(getTestClass().getJavaClass()) {
                     @Override
@@ -566,7 +568,7 @@ public class DataDrivenTestRunner extends Suite {
              * @param freshInstance a fresh instance of the class for which the method needs to be invoked.
              * @return an instance of {@link Statement}
              */
-            private Statement methodCompletesWithParameters(final FrameworkMethod method, final Assignments complete,
+            private Statement methodCompletesWithParameters(final FrameworkMethod method, final EasyAssignments complete,
                 final Object freshInstance) {
 
                 return new Statement() {

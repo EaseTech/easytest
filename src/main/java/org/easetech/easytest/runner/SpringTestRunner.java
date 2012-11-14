@@ -3,7 +3,6 @@ package org.easetech.easytest.runner;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +13,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.easetech.easytest.annotation.DataLoader;
 import org.easetech.easytest.annotation.Intercept;
 import org.easetech.easytest.annotation.Param;
+import org.easetech.easytest.internal.EasyAssignments;
 import org.easetech.easytest.loader.DataConverter;
 import org.easetech.easytest.loader.Loader;
 import org.easetech.easytest.loader.LoaderFactory;
@@ -25,11 +25,8 @@ import org.easetech.easytest.util.TestInfo;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.theories.DataPoint;
-import org.junit.experimental.theories.ParametersSuppliedBy;
 import org.junit.experimental.theories.PotentialAssignment;
 import org.junit.experimental.theories.PotentialAssignment.CouldNotGenerateValueException;
-import org.junit.experimental.theories.internal.Assignments;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.internal.runners.model.EachTestNotifier;
 import org.junit.runner.Runner;
@@ -203,7 +200,7 @@ public class SpringTestRunner extends Suite {
         @Override
         protected void collectInitializationErrors(List<Throwable> errors) {
             super.collectInitializationErrors(errors);
-            validateDataPointFields(errors);
+            //validateDataPointFields(errors);
         }
 
         /**
@@ -276,13 +273,13 @@ public class SpringTestRunner extends Suite {
          * 
          * @param errors list of any errors while validating the {@link DataPoint} field.
          */
-        private void validateDataPointFields(List<Throwable> errors) {
-            Field[] fields = getTestClass().getJavaClass().getDeclaredFields();
-
-            for (Field each : fields)
-                if (each.getAnnotation(DataPoint.class) != null && !Modifier.isStatic(each.getModifiers()))
-                    errors.add(new Error("DataPoint field " + each.getName() + " must be static"));
-        }
+//        private void validateDataPointFields(List<Throwable> errors) {
+//            Field[] fields = getTestClass().getJavaClass().getDeclaredFields();
+//
+//            for (Field each : fields)
+//                if (each.getAnnotation(DataPoint.class) != null && !Modifier.isStatic(each.getModifiers()))
+//                    errors.add(new Error("DataPoint field " + each.getName() + " must be static"));
+//        }
 
         /**
          * Validate that there could ever be only one constructor.
@@ -388,7 +385,7 @@ public class SpringTestRunner extends Suite {
             private TestClass fTestClass;
 
             /**
-             * A List of {@link Assignments}. Each member in the list corresponds to a single set of test data to be
+             * A List of {@link EasyAssignments}. Each member in the list corresponds to a single set of test data to be
              * passed to the test method. For eg. If the user has specified the test data in the CSV file as:<br>
              * <br>
              * <B>testGetItems,LibraryId,itemType,searchText</B> <br>
@@ -397,11 +394,11 @@ public class SpringTestRunner extends Suite {
              * where: <li>testGetItems is the name of the method</li> <li>
              * LibraryId,itemType,searchText are the names of the parameters that the test method expects</li> and <li>
              * ,4,journal,batman</li> <li>,1,ebook,potter</li> are the actual test data <br>
-             * then this list will consists of TWO {@link Assignments} instances with values: <li>[[{LibraryId=4,
+             * then this list will consists of TWO {@link EasyAssignments} instances with values: <li>[[{LibraryId=4,
              * itemType=journal, searchText=batman}]]</li> AND <li>[[{LibraryId=1, itemType=ebook, searchText=potter}]]
              * 
              */
-            private List<Assignments> listOfAssignments;
+            private List<EasyAssignments> listOfAssignments;
 
             /**
              * List of Invalid parameters
@@ -418,8 +415,6 @@ public class SpringTestRunner extends Suite {
              * Loader is found, it loads the data and makes it available to the entire test Thread using
              * {@link DataContext}
              * 
-             * If the annotation {@link DataLoader} is not present, then the test assumes that the user wants to use
-             * {@link ParametersSuppliedBy} annotation and does nothing.
              * 
              * @param method the method to run the test on
              * @param testClass an instance of {@link TestClass}
@@ -427,7 +422,7 @@ public class SpringTestRunner extends Suite {
             public ParamAnchor(FrameworkMethod method, TestClass testClass) {
                 fTestMethod = method;
                 fTestClass = testClass;
-                listOfAssignments = new ArrayList<Assignments>();
+                listOfAssignments = new ArrayList<EasyAssignments>();
                 DataContext.setMethodName(DataConverter.getFullyQualifiedTestName(method.getName(),
                     testClass.getJavaClass()));
             }
@@ -438,7 +433,7 @@ public class SpringTestRunner extends Suite {
 
             @Override
             public void evaluate() throws Throwable {
-                runWithAssignment(Assignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
+                runWithAssignment(EasyAssignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
                 LOG.debug("ParamAnchor evaluate");
                 if (successes == 0)
                     Assert.fail("Never found parameters that satisfied method assumptions.  Violated assumptions: "
@@ -448,25 +443,25 @@ public class SpringTestRunner extends Suite {
             /**
              * This method encapsulates the actual change in behavior from the traditional JUnit Theories way of
              * populating and supplying the test data to the test method. This method creates a list of
-             * {@link Assignments} identified by {@link #listOfAssignments} and then calls
-             * {@link #runWithCompleteAssignment(Assignments)} for each {@link Assignments} element in the
+             * {@link EasyAssignments} identified by {@link #listOfAssignments} and then calls
+             * {@link #runWithCompleteAssignment(EasyAssignments)} for each {@link EasyAssignments} element in the
              * {@link #listOfAssignments}
              * 
-             * @param parameterAssignment an instance of {@link Assignments} identifying the parameters that needs to be
+             * @param parameterAssignment an instance of {@link EasyAssignments} identifying the parameters that needs to be
              *            supplied test data
              * @throws Throwable if any exception occurs.
              */
-            protected void runWithAssignment(Assignments parameterAssignment) throws Throwable {
+            protected void runWithAssignment(EasyAssignments parameterAssignment) throws Throwable {
                 while (!parameterAssignment.isComplete()) {
                     List<PotentialAssignment> potentialAssignments = parameterAssignment.potentialsForNextUnassigned();
                     boolean isFirstSetOfArguments = listOfAssignments.isEmpty();
                     for (int i = 0; i < potentialAssignments.size(); i++) {
                         if (isFirstSetOfArguments) {
-                            Assignments assignments = Assignments
+                            EasyAssignments assignments = EasyAssignments
                                 .allUnassigned(fTestMethod.getMethod(), getTestClass());
                             listOfAssignments.add(assignments.assignNext(potentialAssignments.get(i)));
                         } else {
-                            Assignments assignments = listOfAssignments.get(i);
+                            EasyAssignments assignments = listOfAssignments.get(i);
                             try {
                                 listOfAssignments.set(i, assignments.assignNext(potentialAssignments.get(i)));
                             } catch (IndexOutOfBoundsException e) {
@@ -480,9 +475,9 @@ public class SpringTestRunner extends Suite {
                 if (listOfAssignments.isEmpty()) {
                     LOG.debug("The list of Assignments is null. It normally happens when the user has not supplied any parameters to the test.");
                     LOG.debug(" Creating an instance of Assignments object with all its value unassigned.");
-                    listOfAssignments.add(Assignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
+                    listOfAssignments.add(EasyAssignments.allUnassigned(fTestMethod.getMethod(), getTestClass()));
                 }
-                for (Assignments assignments : listOfAssignments) {
+                for (EasyAssignments assignments : listOfAssignments) {
                     runWithCompleteAssignment(assignments);
                 }
             }
@@ -490,14 +485,14 @@ public class SpringTestRunner extends Suite {
             /**
              * Run the test data with complete Assignments
              * 
-             * @param complete the {@link Assignments}
+             * @param complete the {@link EasyAssignments}
              * @throws InstantiationException if an error occurs while instantiating the method
              * @throws IllegalAccessException if an error occurs due to illegal access to the test method
              * @throws InvocationTargetException if an error occurs because the method is not invokable
              * @throws NoSuchMethodException if an error occurs because no such method with the given name exists.
              * @throws Throwable any other error
              */
-            protected void runWithCompleteAssignment(final Assignments complete) throws InstantiationException,
+            protected void runWithCompleteAssignment(final EasyAssignments complete) throws InstantiationException,
                 IllegalAccessException, InvocationTargetException, NoSuchMethodException, Throwable {
                 new BlockJUnit4ClassRunner(getTestClass().getJavaClass()) {
                     @Override
@@ -559,11 +554,11 @@ public class SpringTestRunner extends Suite {
              * We finally write the test data to the file.
              * 
              * @param method an instance of {@link FrameworkMethod} that needs to be executed
-             * @param complete an instance of {@link Assignments} that contains the input test data values
+             * @param complete an instance of {@link EasyAssignments} that contains the input test data values
              * @param freshInstance a fresh instance of the class for which the method needs to be invoked.
              * @return an instance of {@link Statement}
              */
-            private Statement methodCompletesWithParameters(final FrameworkMethod method, final Assignments complete,
+            private Statement methodCompletesWithParameters(final FrameworkMethod method, final EasyAssignments complete,
                 final Object freshInstance) {
                 return new Statement() {
                     @Override

@@ -4,9 +4,9 @@ testDDTGetItem,LibraryId,itemType,searchText
 testDDTGetItemsWithCustomLoader,LibraryId,itemType,searchText
 ,10,book,catwoman
 ,2,journal,spiderman
-testDDTConverter,itemDescription,itemId,itemType
-,item Description 1, 1212, ebook
-,item Description 2, 3434, journal
+testDDTConverter,itemDescription,itemId,itemType,items
+,item Description 1, 1212, ebook,1:2:3
+,item Description 2, 3434, journal,4:5:6
 testBug,className,dateDebut,dateFin
 ,model.class1.ServiceName,08/12/2012,09/12/2013
 ,model1.Class1.ServiceName,10/12/2012,11/12/2013
