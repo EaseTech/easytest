@@ -5,9 +5,9 @@ You can find these projects here :
 * easytest-core : https://github.com/EaseTech/easytest-core
 * easytest-spring : https://github.com/EaseTech/easytest-spring
 
-THIS PROJECT WILL NOT BE UPDATED NOW. You can continue easytest 0.6.3 JAR from Maven though.
+THIS PROJECT WILL NOT BE UPDATED NOW. You can continue using easytest 0.6.3 JAR from Maven though.
 ======================================================================================================
-We strongly encourage you to look at the core module if you dont use Spring in your project or the spring module in case you have Spring based integration tests.
+We strongly encourage you to look at the core module if you dont use Spring in your project or the spring module in case you have Spring based integration tests.We will be releasing the easytest-core V1 and easytest-spring V1 in the coming weeks before New Year.
 --------------------------------------------------
 
 
